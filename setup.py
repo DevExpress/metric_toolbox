@@ -27,8 +27,13 @@ setup(
             '.gitignore',
             'pyproject.toml',
             'poetry.lock',
-            'readme.md'
+            'readme.md',
         ]
     ),
-    install_requires=['pandas'],
+    install_requires=[
+        'pandas',
+        'sqlalchemy',
+        'pathlib',
+        'sqlite3',
+    ],
 )
