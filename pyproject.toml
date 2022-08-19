@@ -1,7 +1,7 @@
 [tool.poetry]
 authors = ["Stanislav Shchelokovskiy <stanislav.shchelokovskiy@gmail.com>"]
 description = ""
-name = "toolbox classes"
+name = "toolbox_classes"
 version = "0.1.0"
 
 [tool.poetry.dependencies]
