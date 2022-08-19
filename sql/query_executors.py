@@ -5,8 +5,8 @@ from sqlalchemy.engine import Engine
 from pandas import DataFrame, read_sql
 from abc import ABC, abstractmethod
 
-from sql.sql_query import SqlQuery
-from sql.sqlite_data_base import SQLiteDataBase
+from toolbox.sql.sql_query import SqlQuery
+from toolbox.sql.sqlite_data_base import SQLiteDataBase
 
 
 class ConnectionParams(NamedTuple):

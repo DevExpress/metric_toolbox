@@ -1,9 +1,9 @@
 from typing import Type
 from pandas import DataFrame
 
-from sql.sql_query import SqlQuery
-from sql.query_executors import SqlQueryExecutor, MSSqlQueryExecutor
-from sql.columns_validator import ensure_must_have_columns
+from toolbox.sql.sql_query import SqlQuery
+from toolbox.sql.query_executors import SqlQueryExecutor, MSSqlQueryExecutor
+from toolbox.sql.columns_validator import ensure_must_have_columns
 
 
 class BaseRepository:
