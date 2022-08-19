@@ -2,7 +2,10 @@
 authors = ["Stanislav Shchelokovskiy <stanislav.shchelokovskiy@gmail.com>"]
 description = ""
 name = "toolbox_classes"
-version = "0.1.0"
+version = "0.0.1"
+packages = [
+    { include = "sql" },
+]
 
 [tool.poetry.dependencies]
 pandas = "^1.4.3"
