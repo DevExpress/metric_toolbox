@@ -18,6 +18,16 @@ setup(
             'Tests.*',
             'Tests',
             'setuptools_git >= 0.3',
+            '.venv',
+            '.venv.*',
+            '__pycache__',
+            '__pycache__.*',
+            '.pytest_cache',
+            '.pytest_cache.*',
+            '.gitignore',
+            'pyproject.toml',
+            'poetry.lock',
+            'readme.md'
         ]
     ),
     install_requires=['pandas'],
