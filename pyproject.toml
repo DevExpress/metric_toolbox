@@ -1,11 +1,12 @@
 [tool.poetry]
-authors = ["Stanislav Shchelokovskiy <stanislav.shchelokovskiy@gmail.com>"]
+packages = [
+    { include = "sql"},
+    { exclude = ["sql/Tests", ".gitignore", "pyproject.toml", "readme.md", "setup.py"] }
+    
+]authors = ["Stanislav Shchelokovskiy <stanislav.shchelokovskiy@gmail.com>"]
 description = ""
 name = "toolbox_classes"
 version = "0.0.1"
-packages = [
-    { include = "sql" },
-]
 
 [tool.poetry.dependencies]
 pandas = "^1.4.3"
