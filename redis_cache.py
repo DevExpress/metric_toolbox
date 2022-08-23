@@ -22,7 +22,7 @@ class RedisCache:
         self,
         key: str,
         value: Any,
-        ex: Optional[int] = None,
+        ex: Optional[int],
     ):
         if self.r is None:
             self.connect()
@@ -32,9 +32,19 @@ class RedisCache:
             ex=ex,
         )
 
-    def cache(self, db, key: str, val: str) -> None:
+    def cache(
+        self,
+        db,
+        key: str,
+        val: str,
+        ex: Optional[int] = None,
+    ) -> None:
         key = f'{os.environ[db]}:{key}'
-        self.set(key, val)
+        self.set(
+            key=key,
+            value=val,
+            ex=ex,
+        )
 
     def get(self, key: str) -> str:
         if self.r is None:
