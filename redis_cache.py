@@ -1,6 +1,6 @@
 import redis
 import os
-from typing import Any
+from typing import Any, Optional
 
 
 class RedisCache:
@@ -18,10 +18,19 @@ class RedisCache:
             decode_responses=True,
         )
 
-    def set(self, key: str, value: Any):
+    def set(
+        self,
+        key: str,
+        value: Any,
+        ex: Optional[int] = None,
+    ):
         if self.r is None:
             self.connect()
-        self.r.set(key, value)
+        self.r.set(
+            key,
+            value,
+            ex=ex,
+        )
 
     def cache(self, db, key: str, val: str) -> None:
         key = f'{os.environ[db]}:{key}'
@@ -31,9 +40,3 @@ class RedisCache:
         if self.r is None:
             self.connect()
         return self.r.get(key)
-
-    def expire(self, key: str, ttl_seconds: int):
-        self.r.expire(
-            name=key,
-            time=ttl_seconds,
-        )
