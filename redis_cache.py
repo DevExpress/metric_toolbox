@@ -31,3 +31,9 @@ class RedisCache:
         if self.r is None:
             self.connect()
         return self.r.get(key)
+
+    def expire(self, key: str, ttl_seconds: int):
+        self.r.expire(
+            name=key,
+            time=ttl_seconds,
+        )
