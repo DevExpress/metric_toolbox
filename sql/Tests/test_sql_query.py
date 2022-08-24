@@ -1,6 +1,6 @@
 import pytest
 
-from sql.sql_query import SqlQuery, InvalidQueryKeyException
+from toolbox.sql.sql_query import SqlQuery, InvalidQueryKeyException
 
 
 def test_raise_exception_if_get_query_does_not_contain_required_keys():
