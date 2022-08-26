@@ -9,6 +9,7 @@ pandas = "^1.4.3"
 pydantic = "^1.9.1"
 python = "^3.8"
 redis = "^4.3.4"
+pyodbc = "^4.0.34"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

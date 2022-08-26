@@ -1,9 +1,9 @@
-from typing import Type
+from typing import Iterable, Type
 from pandas import DataFrame
 
 from toolbox.sql.sql_query import SqlQuery
 from toolbox.sql.query_executors import SqlQueryExecutor, MSSqlQueryExecutor
-from toolbox.sql.columns_validator import ensure_must_have_columns
+import toolbox.sql.columns_validator as columns_validator
 
 
 class BaseRepository:
@@ -26,8 +26,18 @@ class BaseRepository:
             format_params=kargs['query_format_params'],
         )
         query_result: DataFrame = self.query_executor.execute(sql_query=query)
-        ensure_must_have_columns(
-            df=query_result,
+        self.validate_query_result(
+            query_result=query_result,
             must_have_columns=kargs['must_have_columns'],
         )
         return query_result.reset_index(drop=True)
+
+    def validate_query_result(
+        self,
+        query_result: DataFrame,
+        must_have_columns: Iterable[str],
+    ):
+        columns_validator.ensure_must_have_columns(
+            df=query_result,
+            must_have_columns=must_have_columns,
+        )

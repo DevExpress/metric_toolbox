@@ -1,5 +1,6 @@
 import os
-from typing import Any, Dict, NamedTuple
+import pyodbc
+from typing import Any, Dict, NamedTuple, Iterable
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from pandas import DataFrame, read_sql
@@ -26,6 +27,14 @@ class SqlQueryExecutor(ABC):
         self,
         sql_query: SqlQuery,
         kargs: Dict[str, Any],
+    ) -> DataFrame:
+        pass
+
+    def execute_many(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_query: SqlQuery,
+        main_query_read_kargs: Dict[str, Any] = {},
     ) -> DataFrame:
         pass
 
@@ -84,6 +93,38 @@ class MSSqlQueryExecutor(SqlQueryExecutor):
             kargs=kargs,
         )
         engine.dispose()
+        return query_result
+
+    def execute_many(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_query: SqlQuery,
+        main_query_kwargs: Dict[str, Any] = {},
+    ) -> DataFrame:
+        try:
+            params = self._get_connection_params()
+            conn = pyodbc.connect(
+                f'''Driver=ODBC Driver 17 for SQL Server;
+                    Server={params.server};
+                    Database={params.data_base};
+                    UID={params.user};
+                    PWD={params.password};'''
+            )
+            cursor = conn.cursor()
+            for sql_query in prep_queries:
+                print(sql_query._query_file_path)
+                cursor.execute(sql_query.get_query())
+            cursor.close()
+            conn.commit()
+
+            print(main_query._query_file_path)
+            query_result = self._execute_sql_query(
+                sql_query=main_query,
+                connection=conn,
+                kargs=main_query_kwargs,
+            )
+        finally:
+            conn.close()
         return query_result
 
 
