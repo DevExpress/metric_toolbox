@@ -11,11 +11,9 @@ class SqlQuery:
         self,
         query_file_path: str,
         format_params: Dict[str, str],
-        params: Iterable[Iterable] = None
     ) -> None:
         self._query_file_path = query_file_path
         self.format_params = format_params
-        self.params = params
         self.__cached_query = None
 
     def get_query(self) -> str:
@@ -35,9 +33,6 @@ class SqlQuery:
                 query=self._query_file_path,
                 keys=keys,
             )
-
-    def get_params(self) -> Iterable:
-        return self.params
 
 
 class InvalidQueryKeyException(Exception):

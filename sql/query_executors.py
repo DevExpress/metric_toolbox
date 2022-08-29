@@ -1,6 +1,6 @@
 import os
 import pyodbc
-from typing import Any, Dict, NamedTuple, Iterable
+from typing import Any, Dict, NamedTuple, Iterable, Union
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from pandas import DataFrame, read_sql
@@ -27,7 +27,7 @@ class SqlQueryExecutor(ABC):
         self,
         sql_query: SqlQuery,
         kargs: Dict[str, Any],
-    ) -> DataFrame:
+    ) -> Union[DataFrame, str]:
         pass
 
     def execute_many(
@@ -51,7 +51,7 @@ class SqlQueryExecutor(ABC):
         )
 
 
-class MSSqlQueryExecutor(SqlQueryExecutor):
+class JsonMSSqlQueryExecutor(SqlQueryExecutor):
 
     def __init__(
         self,
@@ -72,6 +72,29 @@ class MSSqlQueryExecutor(SqlQueryExecutor):
             server=os.environ[self.server_env],
             data_base=os.environ[self.data_base_env],
         )
+
+    def execute(
+        self,
+        sql_query: SqlQuery,
+        kargs: Dict[str, Any] = None,
+    ) -> str:
+        try:
+            params = self._get_connection_params()
+            conn = pyodbc.connect(
+                f'''Driver=ODBC Driver 17 for SQL Server;
+                    Server={params.server};
+                    Database={params.data_base};
+                    UID={params.user};
+                    PWD={params.password};'''
+            )
+            cursor = conn.cursor()
+            res = cursor.execute(sql_query.get_query() + '\r\n FOR JSON PATH')
+            return ''.join(row[0] for row in res.fetchall())
+        finally:
+            conn.close()
+
+
+class MSSqlQueryExecutor(JsonMSSqlQueryExecutor):
 
     def _create_engine(self) -> Engine:
         params = self._get_connection_params()
