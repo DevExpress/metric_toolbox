@@ -1,6 +1,6 @@
 import os
 import pyodbc
-from typing import Any, Dict, NamedTuple, Iterable, Union
+from typing import Any, Dict, NamedTuple, Iterable, Union, Optional
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from pandas import DataFrame, read_sql
@@ -35,7 +35,7 @@ class SqlQueryExecutor(ABC):
         prep_queries: Iterable[SqlQuery],
         main_query: SqlQuery,
         main_query_read_kargs: Dict[str, Any] = {},
-    ) -> DataFrame:
+    ) -> Union[DataFrame, str]:
         pass
 
     def _execute_sql_query(
@@ -43,7 +43,7 @@ class SqlQueryExecutor(ABC):
         sql_query: SqlQuery,
         connection: Any,
         kargs: Dict[str, Any],
-    ) -> DataFrame:
+    ) -> Union[DataFrame, str]:
         return read_sql(
             sql=sql_query.get_query(),
             con=connection,
@@ -51,7 +51,7 @@ class SqlQueryExecutor(ABC):
         )
 
 
-class JsonMSSqlQueryExecutor(SqlQueryExecutor):
+class MSSqlQueryExecutorBase(SqlQueryExecutor):
 
     def __init__(
         self,
@@ -73,28 +73,72 @@ class JsonMSSqlQueryExecutor(SqlQueryExecutor):
             data_base=os.environ[self.data_base_env],
         )
 
+
+class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
+
+    def _get_connection(self):
+        params = self._get_connection_params()
+        conn = pyodbc.connect(
+            f'''Driver=ODBC Driver 17 for SQL Server;
+                    Server={params.server};
+                    Database={params.data_base};
+                    UID={params.user};
+                    PWD={params.password};'''
+        )
+
+        return conn
+
+    def _execute_sql_query(
+        self,
+        sql_query: SqlQuery,
+        connection: Any,
+        kargs: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        cursor = connection.cursor()
+        res_raw = cursor.execute(sql_query.get_query() + '\r\n FOR JSON PATH')
+        res_json = ''.join(row[0] for row in res_raw.fetchall())
+        cursor.close()
+        return res_json
+
     def execute(
         self,
         sql_query: SqlQuery,
         kargs: Dict[str, Any] = None,
     ) -> str:
         try:
-            params = self._get_connection_params()
-            conn = pyodbc.connect(
-                f'''Driver=ODBC Driver 17 for SQL Server;
-                    Server={params.server};
-                    Database={params.data_base};
-                    UID={params.user};
-                    PWD={params.password};'''
+            conn = self._get_connection()
+            return self._execute_sql_query(
+                sql_query=sql_query,
+                connection=conn,
             )
+        finally:
+            conn.close()
+
+    def execute_many(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_query: SqlQuery,
+        main_query_kwargs: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        try:
+            conn = self._get_connection()
             cursor = conn.cursor()
-            res = cursor.execute(sql_query.get_query() + '\r\n FOR JSON PATH')
-            return ''.join(row[0] for row in res.fetchall())
+            for sql_query in prep_queries:
+                print(sql_query._query_file_path)
+                cursor.execute(sql_query.get_query())
+            cursor.close()
+            conn.commit()
+
+            print(main_query._query_file_path)
+            return self._execute_sql_query(
+                sql_query=main_query,
+                connection=conn,
+            )
         finally:
             conn.close()
 
 
-class MSSqlQueryExecutor(JsonMSSqlQueryExecutor):
+class MSSqlQueryExecutor(MSSqlQueryExecutorBase):
 
     def _create_engine(self) -> Engine:
         params = self._get_connection_params()
@@ -116,38 +160,6 @@ class MSSqlQueryExecutor(JsonMSSqlQueryExecutor):
             kargs=kargs,
         )
         engine.dispose()
-        return query_result
-
-    def execute_many(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        main_query: SqlQuery,
-        main_query_kwargs: Dict[str, Any] = {},
-    ) -> DataFrame:
-        try:
-            params = self._get_connection_params()
-            conn = pyodbc.connect(
-                f'''Driver=ODBC Driver 17 for SQL Server;
-                    Server={params.server};
-                    Database={params.data_base};
-                    UID={params.user};
-                    PWD={params.password};'''
-            )
-            cursor = conn.cursor()
-            for sql_query in prep_queries:
-                print(sql_query._query_file_path)
-                cursor.execute(sql_query.get_query())
-            cursor.close()
-            conn.commit()
-
-            print(main_query._query_file_path)
-            query_result = self._execute_sql_query(
-                sql_query=main_query,
-                connection=conn,
-                kargs=main_query_kwargs,
-            )
-        finally:
-            conn.close()
         return query_result
 
 
