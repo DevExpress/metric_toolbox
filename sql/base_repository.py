@@ -1,9 +1,10 @@
 from typing import Iterable, Type
 from pandas import DataFrame
 
-from toolbox.sql.sql_query import SqlQuery
-from toolbox.sql.query_executors import SqlQueryExecutor, MSSqlQueryExecutor
 import toolbox.sql.columns_validator as columns_validator
+from toolbox.sql.sql_query import SqlQuery
+from toolbox.sql.query_executors import SqlQueryExecutor, MSSqlQueryExecutor, JsonMSSqlQueryExecutor
+
 
 
 class BaseRepository:
@@ -41,3 +42,24 @@ class BaseRepository:
             df=query_result,
             must_have_columns=must_have_columns,
         )
+
+
+class JSONBasedRepository(BaseRepository):
+
+    def __init__(
+        self,
+        sql_query_type: Type[SqlQuery] = SqlQuery,
+        query_executor: SqlQueryExecutor = JsonMSSqlQueryExecutor(),
+    ) -> None:
+        BaseRepository.__init__(
+            self,
+            sql_query_type=sql_query_type,
+            query_executor=query_executor,
+        )
+
+    def get_data(self, **kargs) -> str:
+        query = self.sql_query_type(
+            query_file_path=kargs['query_file_path'],
+            format_params=kargs['query_format_params'],
+        )
+        return self.query_executor.execute(sql_query=query)
