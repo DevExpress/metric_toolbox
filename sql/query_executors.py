@@ -38,6 +38,14 @@ class SqlQueryExecutor(ABC):
     ) -> Union[DataFrame, str]:
         pass
 
+    def execute_many_main_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_queries: Dict[str, SqlQuery],
+        main_query_read_kargs: Dict[str, Any] = {},
+    ) -> Dict[str, Union[DataFrame, str]]:
+        pass
+
     def _execute_sql_query(
         self,
         sql_query: SqlQuery,
@@ -122,18 +130,42 @@ class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
     ) -> str:
         try:
             conn = self._get_connection()
-            cursor = conn.cursor()
-            for sql_query in prep_queries:
-                print(sql_query._query_file_path)
-                cursor.execute(sql_query.get_query())
-            cursor.close()
-            conn.commit()
+            self._execute_prep_queries(prep_queries, conn)
 
             print(main_query._query_file_path)
             return self._execute_sql_query(
                 sql_query=main_query,
                 connection=conn,
             )
+        finally:
+            conn.close()
+
+    def _execute_prep_queries(self, prep_queries, conn):
+        cursor = conn.cursor()
+        for sql_query in prep_queries:
+            print(sql_query._query_file_path)
+            cursor.execute(sql_query.get_query())
+        cursor.close()
+        conn.commit()
+
+    def execute_many_main_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_queries: Dict[str, SqlQuery],
+        main_query_read_kargs: Dict[str, Any] = {},
+    ) -> Dict[str, Union[DataFrame, str]]:
+        try:
+            conn = self._get_connection()
+            self._execute_prep_queries(prep_queries, conn)
+
+            res = {}
+            for k, v in main_queries.items():
+                print(f'{k} : {v._query_file_path}')
+                res[k] = self._execute_sql_query(
+                    sql_query=v,
+                    connection=conn,
+                )
+            return res
         finally:
             conn.close()
 
