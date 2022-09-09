@@ -103,7 +103,7 @@ class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
         kargs: Optional[Dict[str, Any]] = None,
     ) -> str:
         cursor = connection.cursor()
-        res_raw = cursor.execute(sql_query.get_query() + '\r\n FOR JSON AUTO')
+        res_raw = cursor.execute(sql_query.get_query() + '\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES')
         res_json = ''.join(row[0] for row in res_raw.fetchall())
         cursor.close()
         return res_json
