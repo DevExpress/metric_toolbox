@@ -34,12 +34,10 @@ class RedisCache:
 
     def cache(
         self,
-        db,
         key: str,
         val: str,
         ex: Optional[int] = None,
     ) -> None:
-        key = f'{os.environ[db]}:{key}'
         self.set(
             key=key,
             value=val,
