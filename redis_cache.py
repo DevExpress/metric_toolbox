@@ -5,7 +5,8 @@ from typing import Any, Optional
 
 class RedisCache:
 
-    def __init__(self) -> None:
+    def __init__(self, db_name: str = None) -> None:
+        self.db_name = db_name or os.environ["REDIS_DB"]
         self.r: redis.Redis = None
 
     def connect(self):
@@ -48,3 +49,6 @@ class RedisCache:
         if self.r is None:
             self.connect()
         return self.r.get(key)
+
+    def _get_key(self, *kargs) -> str:
+        return f'{self.db_name}:{":".join(str(arg) for arg in kargs)}'
