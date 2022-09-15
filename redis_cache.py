@@ -6,7 +6,7 @@ from typing import Any, Optional
 class RedisCache:
 
     def __init__(self, db_name: str = None) -> None:
-        self.db_name = db_name or os.environ["REDIS_DB"]
+        self.db_name = db_name or os.environ['REDIS_DB']
         self.r: redis.Redis = None
 
     def connect(self):
