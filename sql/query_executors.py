@@ -27,7 +27,7 @@ class SqlQueryExecutor(ABC):
         self,
         sql_query: SqlQuery,
         kargs: Dict[str, Any],
-    ) -> Union[DataFrame, str]:
+    ) -> Union[DataFrame, str, None]:
         pass
 
     def execute_many(
@@ -82,7 +82,7 @@ class MSSqlQueryExecutorBase(SqlQueryExecutor):
         )
 
 
-class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
+class JsonMSSqlQueryExecutorBase(MSSqlQueryExecutorBase):
 
     def _get_connection(self):
         params = self._get_connection_params()
@@ -103,10 +103,9 @@ class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
         kargs: Optional[Dict[str, Any]] = None,
     ) -> str:
         cursor = connection.cursor()
-        res_raw = cursor.execute(sql_query.get_query() + '\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES')
-        res_json = ''.join(row[0] for row in res_raw.fetchall())
+        cursor.execute(sql_query.get_query())
         cursor.close()
-        return res_json
+        return ''
 
     def execute(
         self,
@@ -120,7 +119,34 @@ class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
                 connection=conn,
             )
         finally:
+            self._end_query_execution(conn)
             conn.close()
+
+    def _end_query_execution(self, conn):
+        pass
+
+
+class JsonMSSqlPostQueryExecutor(JsonMSSqlQueryExecutorBase):
+
+    def _end_query_execution(self, conn):
+        conn.commit()
+
+
+class JsonMSSqlReadQueryExecutor(JsonMSSqlPostQueryExecutor):
+
+    def _execute_sql_query(
+        self,
+        sql_query: SqlQuery,
+        connection: Any,
+        kargs: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        cursor = connection.cursor()
+        res_raw = cursor.execute(
+            sql_query.get_query() + '\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES'
+        )
+        res_json = ''.join(row[0] for row in res_raw.fetchall())
+        cursor.close()
+        return res_json
 
     def execute_many(
         self,
@@ -140,7 +166,11 @@ class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
         finally:
             conn.close()
 
-    def _execute_prep_queries(self, prep_queries, conn):
+    def _execute_prep_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        conn,
+    ):
         cursor = conn.cursor()
         for sql_query in prep_queries:
             print(sql_query._query_file_path)
@@ -170,7 +200,7 @@ class JsonMSSqlQueryExecutor(MSSqlQueryExecutorBase):
             conn.close()
 
 
-class MSSqlQueryExecutor(MSSqlQueryExecutorBase):
+class MSSqlReadQueryExecutor(MSSqlQueryExecutorBase):
 
     def _create_engine(self) -> Engine:
         params = self._get_connection_params()
