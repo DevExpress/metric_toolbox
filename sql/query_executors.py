@@ -82,7 +82,7 @@ class MSSqlQueryExecutorBase(SqlQueryExecutor):
         )
 
 
-class JsonMSSqlQueryExecutorBase(MSSqlQueryExecutorBase):
+class MSSqlPostQueryExecutor(MSSqlQueryExecutorBase):
 
     def _get_connection(self):
         params = self._get_connection_params()
@@ -123,16 +123,34 @@ class JsonMSSqlQueryExecutorBase(MSSqlQueryExecutorBase):
             conn.close()
 
     def _end_query_execution(self, conn):
-        pass
-
-
-class JsonMSSqlPostQueryExecutor(JsonMSSqlQueryExecutorBase):
-
-    def _end_query_execution(self, conn):
         conn.commit()
 
+    def _execute_prep_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        conn,
+    ):
+        cursor = conn.cursor()
+        for sql_query in prep_queries:
+            print(sql_query._query_file_path)
+            cursor.execute(sql_query.get_query())
+        cursor.close()
+        conn.commit()
 
-class JsonMSSqlReadQueryExecutor(JsonMSSqlPostQueryExecutor):
+    def execute_many(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_query: SqlQuery = None,
+        main_query_kwargs: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        try:
+            conn = self._get_connection()
+            self._execute_prep_queries(prep_queries, conn)
+        finally:
+            conn.close()
+
+
+class JsonMSSqlReadQueryExecutor(MSSqlPostQueryExecutor):
 
     def _execute_sql_query(
         self,
@@ -165,18 +183,6 @@ class JsonMSSqlReadQueryExecutor(JsonMSSqlPostQueryExecutor):
             )
         finally:
             conn.close()
-
-    def _execute_prep_queries(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        conn,
-    ):
-        cursor = conn.cursor()
-        for sql_query in prep_queries:
-            print(sql_query._query_file_path)
-            cursor.execute(sql_query.get_query())
-        cursor.close()
-        conn.commit()
 
     def execute_many_main_queries(
         self,
