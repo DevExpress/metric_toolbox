@@ -4,7 +4,7 @@ from pathlib import Path
 from toolbox.sql.sql_query import SqlQuery
 
 
-class QueryLoader:
+class QueryGetter:
 
     @staticmethod
     def get_queries_in_dir(
