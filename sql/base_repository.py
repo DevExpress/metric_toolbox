@@ -1,4 +1,4 @@
-from typing import Iterable, Type, Union, Optional
+from typing import Iterable, Type, Union
 from pandas import DataFrame
 
 import toolbox.sql.columns_validator as columns_validator
