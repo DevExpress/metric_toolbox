@@ -34,5 +34,5 @@ class JSON_to_DF:
             if col in df.columns:
                 df[col] = to_datetime(
                     df[col],
-                    utc=True,
+                    utc=False,
                 )
