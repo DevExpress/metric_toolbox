@@ -1,65 +1,37 @@
 import os
-import pyodbc
-from typing import Any, Dict, NamedTuple, Iterable, Union, Optional
-from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
-from pandas import DataFrame, read_sql
 from abc import ABC, abstractmethod
+from typing import Any, Callable, Dict, Iterable, Optional, Union
 
+from pandas import DataFrame, read_sql
+from sqlalchemy import create_engine
+from sqlalchemy.engine import Connection, Engine
 from toolbox.sql.sql_query import SqlQuery
 from toolbox.sql.sqlite_data_base import SQLiteDataBase
 
 
-class ConnectionParams(NamedTuple):
-    user: str
-    password: str
-    server: str
-    data_base: str
+class ConnectionParams:
 
-
-class SqlQueryExecutor(ABC):
-    """
-    Executes and sql query passed to the execute method.
-    """
-
-    @abstractmethod
-    def execute(
+    def __init__(
         self,
-        sql_query: SqlQuery,
-        kargs: Dict[str, Any],
-    ) -> Union[DataFrame, str, None]:
-        pass
+        user: str,
+        password: str,
+        server: str,
+        data_base: str,
+    ):
+        self.user = user
+        self.password = password
+        self.server = server
+        self.data_base = data_base
 
-    def execute_many(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        main_query: SqlQuery,
-        main_query_read_kargs: Dict[str, Any] = {},
-    ) -> Union[DataFrame, str]:
-        pass
-
-    def execute_many_main_queries(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        main_queries: Dict[str, SqlQuery],
-        main_query_read_kargs: Dict[str, Any] = {},
-    ) -> Dict[str, Union[DataFrame, str]]:
-        pass
-
-    def _execute_sql_query(
-        self,
-        sql_query: SqlQuery,
-        connection: Any,
-        kargs: Dict[str, Any],
-    ) -> Union[DataFrame, str]:
-        return read_sql(
-            sql=sql_query.get_query(),
-            con=connection,
-            **kargs,
+    def get_url(self):
+        return (
+            'mssql+pyodbc://' + self.user + ':' + self.password + '@'
+            + self.server + '/' + self.data_base
+            + '?driver=ODBC Driver 17 for SQL Server'
         )
 
 
-class MSSqlQueryExecutorBase(SqlQueryExecutor):
+class ConnectionObject:
 
     def __init__(
         self,
@@ -68,74 +40,178 @@ class MSSqlQueryExecutorBase(SqlQueryExecutor):
         server_env: str = 'SQL_SERVER',
         data_base_env: str = 'SQL_DATABASE',
     ):
-        self.user_env = user_env
-        self.password_env = password_env
-        self.server_env = server_env
-        self.data_base_env = data_base_env
-
-    def _get_connection_params(self) -> ConnectionParams:
-        return ConnectionParams(
-            user=os.environ[self.user_env],
-            password=os.environ[self.password_env],
-            server=os.environ[self.server_env],
-            data_base=os.environ[self.data_base_env],
+        self.__connection_params = ConnectionParams(
+            user=os.environ[user_env],
+            password=os.environ[password_env],
+            server=os.environ[server_env],
+            data_base=os.environ[data_base_env],
         )
+        self.__engine = None
+        self.__connection = None
+
+    def __create_engine(self) -> Engine:
+        return create_engine(self.__connection_params.get_url())
+
+    def connect(self) -> Connection:
+        self.disconnect()
+        self.__engine = self.__create_engine()
+        self.__connection = self.__engine.connect()
+        return self.__connection
+
+    def disconnect(self) -> None:
+        if self.__connection:
+            self.__connection.close()
+        if self.__engine:
+            self.__engine.dispose()
 
 
-class MSSqlPostQueryExecutor(MSSqlQueryExecutorBase):
+class SqlQueryExecutorBase(ABC):
+    """
+    Executes and sql query passed to the execute method.
+    """
 
-    def _get_connection(self):
-        params = self._get_connection_params()
-        conn = pyodbc.connect(
-            f'''Driver=ODBC Driver 17 for SQL Server;
-                    Server={params.server};
-                    Database={params.data_base};
-                    UID={params.user};
-                    PWD={params.password};'''
-        )
+    @abstractmethod
+    def execute(
+        self,
+        sql_query: SqlQuery,
+        kwargs: Dict[str, Any],
+    ) -> Union[DataFrame, str, None]:
+        pass
 
-        return conn
+    def execute_many(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_query: SqlQuery,
+        main_query_read_kwargs: Dict[str, Any] = {},
+    ) -> Union[DataFrame, str]:
+        pass
+
+    def execute_many_main_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_queries: Dict[str, SqlQuery],
+        main_query_read_kwargs: Dict[str, Any] = {},
+    ) -> Dict[str, Union[DataFrame, str]]:
+        pass
 
     def _execute_sql_query(
         self,
         sql_query: SqlQuery,
         connection: Any,
-        kargs: Optional[Dict[str, Any]] = None,
-    ) -> str:
-        cursor = connection.cursor()
-        cursor.execute(sql_query.get_query())
-        cursor.close()
-        return ''
+        kwargs: Dict[str, Any],
+    ) -> Union[DataFrame, str]:
+        return read_sql(
+            sql=sql_query.get_query(),
+            con=connection,
+            **kwargs,
+        )
+
+
+class SqlQueryExecutor(SqlQueryExecutorBase):
+
+    def __init__(
+        self,
+        connection_object: ConnectionObject = ConnectionObject(),
+    ):
+        self.__connection_object = connection_object
+
+    def _execute_query_func(self, func: Callable[[Connection], Any]):
+        conn = self.__connection_object.connect()
+        res = func(conn)
+        self.__connection_object.disconnect()
+        return res
 
     def execute(
         self,
         sql_query: SqlQuery,
-        kargs: Dict[str, Any] = None,
-    ) -> str:
-        try:
-            conn = self._get_connection()
+        kwargs: Dict[str, Any] = {},
+    ) -> DataFrame:
+
+        def func(conn: Connection):
             return self._execute_sql_query(
                 sql_query=sql_query,
                 connection=conn,
+                kwargs=kwargs,
             )
-        finally:
-            self._end_query_execution(conn)
-            conn.close()
 
-    def _end_query_execution(self, conn):
-        conn.commit()
+        return self._execute_query_func(func=func)
 
     def _execute_prep_queries(
         self,
         prep_queries: Iterable[SqlQuery],
-        conn,
+        conn: Connection,
     ):
-        cursor = conn.cursor()
         for sql_query in prep_queries:
             print(sql_query._query_file_path)
-            cursor.execute(sql_query.get_query())
-        cursor.close()
-        conn.commit()
+            conn.execute(sql_query.get_query())
+
+    def execute_many(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_query: SqlQuery,
+        main_query_read_kwargs: Dict[str, Any] = {},
+    ) -> Union[DataFrame, str]:
+
+        def func(conn: Connection):
+            self._execute_prep_queries(prep_queries, conn)
+            print(main_query._query_file_path)
+            return self._execute_sql_query(
+                sql_query=main_query,
+                connection=conn,
+                kwargs=main_query_read_kwargs,
+            )
+
+        return self._execute_query_func(func=func)
+
+    def execute_many_main_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_queries: Dict[str, SqlQuery],
+        main_query_read_kwargs: Dict[str, Any] = {},
+    ) -> Dict[str, Union[DataFrame, str]]:
+
+        def func(conn: Connection):
+            self._execute_prep_queries(prep_queries, conn)
+            res = {}
+            for k, v in main_queries.items():
+                print(f'{k} : {v._query_file_path}')
+                res[k] = self._execute_sql_query(
+                    sql_query=v,
+                    connection=conn,
+                    kwargs=main_query_read_kwargs,
+                )
+            return res
+
+        return self._execute_query_func(func=func)
+
+    def _execute_sql_query(
+        self,
+        sql_query: SqlQuery,
+        connection: Connection,
+        kwargs: Dict[str, Any],
+    ) -> Union[DataFrame, str]:
+        return read_sql(
+            sql=sql_query.get_query(),
+            con=connection,
+            **kwargs,
+        )
+
+
+class SqlPostQueryExecutor(SqlQueryExecutor):
+
+    def execute(
+        self,
+        sql_query: SqlQuery,
+        kwargs: Dict[str, Any] = None,
+    ) -> str:
+
+        def func(conn: Connection):
+            self._execute_prep_queries(
+                prep_queries=[sql_query],
+                conn=conn,
+            )
+
+        self._execute_query_func(func=func)
 
     def execute_many(
         self,
@@ -143,95 +219,40 @@ class MSSqlPostQueryExecutor(MSSqlQueryExecutorBase):
         main_query: SqlQuery = None,
         main_query_kwargs: Optional[Dict[str, Any]] = None,
     ) -> None:
-        try:
-            conn = self._get_connection()
-            self._execute_prep_queries(prep_queries, conn)
-        finally:
-            conn.close()
 
-
-class JsonMSSqlReadQueryExecutor(MSSqlPostQueryExecutor):
-
-    def _execute_sql_query(
-        self,
-        sql_query: SqlQuery,
-        connection: Any,
-        kargs: Optional[Dict[str, Any]] = None,
-    ) -> str:
-        cursor = connection.cursor()
-        res_raw = cursor.execute(
-            sql_query.get_query() + '\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES'
-        )
-        res_json = ''.join(row[0] for row in res_raw.fetchall())
-        cursor.close()
-        return res_json
-
-    def execute_many(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        main_query: SqlQuery,
-        main_query_kwargs: Optional[Dict[str, Any]] = None,
-    ) -> str:
-        try:
-            conn = self._get_connection()
-            self._execute_prep_queries(prep_queries, conn)
-
-            print(main_query._query_file_path)
-            return self._execute_sql_query(
-                sql_query=main_query,
-                connection=conn,
+        def func(conn: Connection):
+            self._execute_prep_queries(
+                prep_queries=prep_queries,
+                conn=conn,
             )
-        finally:
-            conn.close()
+
+        self._execute_query_func(func=func)
 
     def execute_many_main_queries(
         self,
         prep_queries: Iterable[SqlQuery],
         main_queries: Dict[str, SqlQuery],
-        main_query_read_kargs: Dict[str, Any] = {},
+        main_query_read_kwargs: Dict[str, Any] = {},
     ) -> Dict[str, Union[DataFrame, str]]:
-        try:
-            conn = self._get_connection()
-            self._execute_prep_queries(prep_queries, conn)
-
-            res = {}
-            for k, v in main_queries.items():
-                print(f'{k} : {v._query_file_path}')
-                res[k] = self._execute_sql_query(
-                    sql_query=v,
-                    connection=conn,
-                )
-            return res
-        finally:
-            conn.close()
+        raise NotImplementedError()
 
 
-class MSSqlReadQueryExecutor(MSSqlQueryExecutorBase):
+class JsonMSSqlReadQueryExecutor(SqlQueryExecutor):
 
-    def _create_engine(self) -> Engine:
-        params = self._get_connection_params()
-        return create_engine(
-            'mssql+pyodbc://' + params.user + ':' + params.password + '@'
-            + params.server + '/' + params.data_base
-            + '?driver=ODBC Driver 17 for SQL Server',
-        )
-
-    def execute(
+    def _execute_sql_query(
         self,
         sql_query: SqlQuery,
-        kargs: Dict[str, Any] = {},
-    ) -> DataFrame:
-        engine = self._create_engine()
-        query_result = self._execute_sql_query(
-            sql_query=sql_query,
-            connection=engine,
-            kargs=kargs,
+        connection: Connection,
+        kwargs: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        res_raw = connection.execute(
+            sql_query.get_query() + '\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES'
         )
-        engine.dispose()
-        return query_result
+        res_json = ''.join(row[0] for row in res_raw.fetchall())
+        return res_json
 
 
-class SQLiteQueryExecutor(SqlQueryExecutor):
+class SQLiteQueryExecutor(SqlQueryExecutorBase):
 
     def __init__(
         self,
@@ -243,7 +264,7 @@ class SQLiteQueryExecutor(SqlQueryExecutor):
         self,
         sql_query: SqlQuery,
         source_tables: Dict[str, DataFrame],
-        kargs: Dict[str, Any] = {},
+        kwargs: Dict[str, Any] = {},
     ) -> DataFrame:
         self.data_base.try_connect()
         self.data_base.save_tables(source_tables)
@@ -251,7 +272,7 @@ class SQLiteQueryExecutor(SqlQueryExecutor):
         query_result = self._execute_sql_query(
             sql_query=sql_query,
             connection=self.data_base.get_connection(),
-            kargs=kargs,
+            kwargs=kwargs,
         )
 
         self.data_base.try_disconnect()

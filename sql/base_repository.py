@@ -1,9 +1,13 @@
 from typing import Iterable, Type, Union
-from pandas import DataFrame
 
 import toolbox.sql.columns_validator as columns_validator
+from pandas import DataFrame
+from toolbox.sql.query_executors import (
+    JsonMSSqlReadQueryExecutor,
+    SqlQueryExecutor,
+    SqlQueryExecutorBase,
+)
 from toolbox.sql.sql_query import SqlQuery
-from toolbox.sql.query_executors import SqlQueryExecutor, MSSqlReadQueryExecutor, JsonMSSqlReadQueryExecutor
 
 
 class BaseRepository:
@@ -15,10 +19,10 @@ class BaseRepository:
     def __init__(
         self,
         sql_query_type: Type[SqlQuery] = SqlQuery,
-        query_executor: SqlQueryExecutor = None,
+        query_executor: SqlQueryExecutorBase = None,
     ) -> None:
         self.sql_query_type = sql_query_type
-        self.query_executor = query_executor or MSSqlReadQueryExecutor()
+        self.query_executor = query_executor or SqlQueryExecutor()
 
     def execute_query(self, **kwargs) -> Union[DataFrame, str, None]:
         query = self.sql_query_type(
@@ -54,7 +58,7 @@ class JSONBasedRepository(BaseRepository):
     def __init__(
         self,
         sql_query_type: Type[SqlQuery] = SqlQuery,
-        query_executor: SqlQueryExecutor = JsonMSSqlReadQueryExecutor(),
+        query_executor: SqlQueryExecutorBase = JsonMSSqlReadQueryExecutor(),
     ) -> None:
         BaseRepository.__init__(
             self,
