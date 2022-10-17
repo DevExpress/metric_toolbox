@@ -111,14 +111,19 @@ class SqlQueryExecutor(SqlQueryExecutorBase):
 
     def __init__(
         self,
-        connection_object: ConnectionObject = ConnectionObject(),
+        connection_object: ConnectionObject = None,
     ):
         self.__connection_object = connection_object
 
+    def get_connection_object(self):
+        if self.__connection_object is None:
+            self.__connection_object = ConnectionObject()
+        return self.__connection_object
+
     def _execute_query_func(self, func: Callable[[Connection], Any]):
-        conn = self.__connection_object.connect()
+        conn = self.get_connection_object().connect()
         res = func(conn)
-        self.__connection_object.disconnect()
+        self.get_connection_object().disconnect()
         return res
 
     def execute(
