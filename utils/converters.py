@@ -1,4 +1,5 @@
-from typing import List
+import json
+from typing import List, Callable, Iterable
 from pandas import DataFrame, read_json, to_datetime
 
 
@@ -36,3 +37,11 @@ class JSON_to_DF:
                     df[col],
                     utc=False,
                 )
+
+
+class Objects_to_JSON:
+
+    @staticmethod
+    def convert(get_objects: Callable[[], Iterable]) -> str:
+        object_abbrs = [str(it) for it in get_objects()]
+        return json.dumps(object_abbrs)
