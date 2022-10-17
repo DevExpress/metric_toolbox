@@ -34,7 +34,7 @@ class RedisCache:
             ex=ex,
         )
 
-    def _get_key(self, *kargs) -> str:
+    def get_key(self, *kargs) -> str:
         return f'{self._get_db_name()}:{":".join(str(arg) for arg in kargs)}'
 
     def _get_db_name(self):
