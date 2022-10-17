@@ -42,6 +42,6 @@ class JSON_to_DF:
 class Objects_to_JSON:
 
     @staticmethod
-    def convert(get_objects: Callable[[], Iterable]) -> str:
-        object_abbrs = [str(it) for it in get_objects()]
-        return json.dumps(object_abbrs)
+    def convert(objects: Iterable) -> str:
+        str_objects = [str(obj) for obj in objects]
+        return json.dumps(str_objects)
