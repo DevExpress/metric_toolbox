@@ -34,12 +34,12 @@ class JSON_to_DF:
 class DateTimeColumnsConverter:
 
     @staticmethod
-    def convert(df: DataFrame, cols: List[str]):
+    def convert(df: DataFrame, cols: List[str], utc: bool = True):
         for col in cols:
             if col in df.columns:
                 df[col] = to_datetime(
                     df[col],
-                    utc=False,
+                    utc=utc,
                 )
 
 

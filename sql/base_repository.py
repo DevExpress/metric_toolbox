@@ -1,4 +1,4 @@
-from typing import Iterable, Type, Union
+from typing import Iterable, Type, Union, Dict
 
 import toolbox.sql.columns_validator as columns_validator
 from pandas import DataFrame
@@ -31,7 +31,7 @@ class BaseRepository:
         )
         return self.query_executor.execute(sql_query=query)
 
-    def get_data(self, **kwargs) -> Union[DataFrame, str]:
+    def get_data(self, **kwargs) -> Union[Dict[str, DataFrame], DataFrame, str]:
         query_result: DataFrame = self.execute_query(**kwargs)
         self.validate_query_result(
             query_result=query_result,
