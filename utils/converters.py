@@ -42,6 +42,14 @@ class DateTimeColumnsConverter:
                     utc=utc,
                 )
 
+    @staticmethod
+    def convert_many(dfs: Iterable[DataFrame], cols: List[str], utc: bool = True):
+        for df in dfs:
+            DateTimeColumnsConverter.convert(
+                df=df,
+                cols=cols,
+            )
+
 
 class Objects_to_JSON:
 
