@@ -155,7 +155,7 @@ class SqlQueryExecutor(SqlQueryExecutorBase):
         prep_queries: Iterable[SqlQuery],
         main_query: SqlQuery,
         main_query_read_kwargs: Dict[str, Any] = {},
-    ) -> Union[DataFrame, str]:
+    ) -> DataFrame:
 
         def func(conn: Connection):
             self._execute_prep_queries(prep_queries, conn)
@@ -173,7 +173,7 @@ class SqlQueryExecutor(SqlQueryExecutorBase):
         prep_queries: Iterable[SqlQuery],
         main_queries: Dict[str, SqlQuery],
         main_query_read_kwargs: Dict[str, Any] = {},
-    ) -> Dict[str, Union[DataFrame, str]]:
+    ) -> Dict[str, DataFrame]:
 
         def func(conn: Connection):
             self._execute_prep_queries(prep_queries, conn)
@@ -194,7 +194,7 @@ class SqlQueryExecutor(SqlQueryExecutorBase):
         sql_query: SqlQuery,
         connection: Connection,
         kwargs: Dict[str, Any],
-    ) -> Union[DataFrame, str]:
+    ) -> DataFrame:
         return read_sql(
             sql=sql_query.get_query(),
             con=connection,
