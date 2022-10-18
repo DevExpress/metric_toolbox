@@ -1,5 +1,6 @@
 import json
-from typing import List, Callable, Iterable
+import numbers
+from typing import List, Iterable
 from pandas import DataFrame, read_json, to_datetime
 
 
@@ -43,5 +44,22 @@ class Objects_to_JSON:
 
     @staticmethod
     def convert(objects: Iterable) -> str:
-        str_objects = [str(obj) for obj in objects]
-        return json.dumps(str_objects)
+        str_objects = [
+            obj if isinstance(obj, numbers.Number) else str(obj)
+            for obj in objects
+        ]
+        return Object_to_JSON.convert(str_objects)
+
+
+class Object_to_JSON:
+
+    @staticmethod
+    def convert(obj) -> str:
+        return json.dumps(obj)
+
+
+class JSON_to_object:
+
+    @staticmethod
+    def convert(json_obj: str) -> str:
+        return json.loads(json_obj)
