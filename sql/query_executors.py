@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Connection, Engine
 from toolbox.sql.sql_query import SqlQuery
 from toolbox.sql.sqlite_data_base import SQLiteDataBase
+from toolbox.logger import Logger
 
 
 class ConnectionParams:
@@ -147,7 +148,7 @@ class SqlQueryExecutor(SqlQueryExecutorBase):
         conn: Connection,
     ):
         for sql_query in prep_queries:
-            print(sql_query._query_file_path)
+            Logger.debug(sql_query._query_file_path)
             conn.execute(sql_query.get_query())
 
     def execute_many(
@@ -159,7 +160,7 @@ class SqlQueryExecutor(SqlQueryExecutorBase):
 
         def func(conn: Connection):
             self._execute_prep_queries(prep_queries, conn)
-            print(main_query._query_file_path)
+            Logger.debug(main_query._query_file_path)
             return self._execute_sql_query(
                 sql_query=main_query,
                 connection=conn,
@@ -179,7 +180,7 @@ class SqlQueryExecutor(SqlQueryExecutorBase):
             self._execute_prep_queries(prep_queries, conn)
             res = {}
             for k, v in main_queries.items():
-                print(f'{k} : {v._query_file_path}')
+                Logger.debug(f'{k} : {v._query_file_path}')
                 res[k] = self._execute_sql_query(
                     sql_query=v,
                     connection=conn,

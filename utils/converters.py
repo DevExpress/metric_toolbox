@@ -26,12 +26,15 @@ class JSON_to_DF:
             orient='records',
         )
 
-        JSON_to_DF._convert_dt_columns(df, dt_cols)
+        DateTimeColumnsConverter.convert(df, dt_cols)
 
         return df
 
+
+class DateTimeColumnsConverter:
+
     @staticmethod
-    def _convert_dt_columns(df: DataFrame, cols: List[str]):
+    def convert(df: DataFrame, cols: List[str]):
         for col in cols:
             if col in df.columns:
                 df[col] = to_datetime(
