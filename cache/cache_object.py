@@ -1,4 +1,4 @@
-from typing import Iterable, Union, Optional
+from typing import Iterable, Union, Any
 from pandas import DataFrame
 
 from toolbox.cache.redis_cache import RedisCache
@@ -6,6 +6,7 @@ from toolbox.utils.converters import (
     DF_to_JSON,
     JSON_to_DF,
     Objects_to_JSON,
+    JSON_to_object,
 )
 
 
@@ -33,13 +34,16 @@ class CacheObject:
 
     def get_df(self, *args, **kwargs) -> DataFrame:
         return JSON_to_DF.convert(json=self.get(*args), **kwargs)
+    
+    def get_object(self, *args, **kwargs) -> Any:
+        return JSON_to_object.convert(json_obj=self.get(*args), **kwargs)
 
     def __get_key(self, *args):
         return CacheObject.get_underlying_cache().get_key(
             self.__base_key, *args
         )
 
-    def save(self, value: str, key: Optional[Iterable]):
+    def save(self, value: str, key: Iterable = []):
         CacheObject.get_underlying_cache().set(
             key=self.__get_key(*key),
             value=value,
