@@ -4,25 +4,35 @@ from typing import Any, Callable, Dict, Iterable, Optional, Union
 
 from pandas import DataFrame, read_sql
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Connection, Engine
+from sqlalchemy.engine import Connection, Engine, Transaction
 from toolbox.sql.sql_query import SqlQuery
 from toolbox.sql.sqlite_data_base import SQLiteDataBase
 from toolbox.logger import Logger
+
+
+_engine = None
+
+
+def _get_or_create_engine():
+    global _engine
+    if _engine is None:
+        _engine = create_engine(ConnectionParams().get_url())
+    return _engine
 
 
 class ConnectionParams:
 
     def __init__(
         self,
-        user: str,
-        password: str,
-        server: str,
-        data_base: str,
+        user_env: str = 'SQL_USER',
+        password_env: str = 'SQL_PASSWORD',
+        server_env: str = 'SQL_SERVER',
+        data_base_env: str = 'SQL_DATABASE',
     ):
-        self.user = user
-        self.password = password
-        self.server = server
-        self.data_base = data_base
+        self.user = os.environ[user_env]
+        self.password = os.environ[password_env]
+        self.server = os.environ[server_env]
+        self.data_base = os.environ[data_base_env]
 
     def get_url(self):
         return (
@@ -34,36 +44,11 @@ class ConnectionParams:
 
 class ConnectionObject:
 
-    def __init__(
-        self,
-        user_env: str = 'SQL_USER',
-        password_env: str = 'SQL_PASSWORD',
-        server_env: str = 'SQL_SERVER',
-        data_base_env: str = 'SQL_DATABASE',
-    ):
-        self.__connection_params = ConnectionParams(
-            user=os.environ[user_env],
-            password=os.environ[password_env],
-            server=os.environ[server_env],
-            data_base=os.environ[data_base_env],
-        )
-        self.__engine = None
-        self.__connection = None
+    def __get_or_create_engine(self) -> Engine:
+        return _get_or_create_engine()
 
-    def __create_engine(self) -> Engine:
-        return create_engine(self.__connection_params.get_url())
-
-    def connect(self) -> Connection:
-        self.disconnect()
-        self.__engine = self.__create_engine()
-        self.__connection = self.__engine.connect()
-        return self.__connection
-
-    def disconnect(self) -> None:
-        if self.__connection:
-            self.__connection.close()
-        if self.__engine:
-            self.__engine.dispose()
+    def begin_transaction(self) -> Transaction:
+        return self.__get_or_create_engine().begin()
 
 
 class SqlQueryExecutorBase(ABC):
@@ -110,21 +95,12 @@ class SqlQueryExecutorBase(ABC):
 
 class SqlQueryExecutor(SqlQueryExecutorBase):
 
-    def __init__(
-        self,
-        connection_object: ConnectionObject = None,
-    ):
-        self.__connection_object = connection_object
-
-    def get_connection_object(self):
-        if self.__connection_object is None:
-            self.__connection_object = ConnectionObject()
-        return self.__connection_object
+    def begin_transaction(self):
+        return ConnectionObject().begin_transaction()
 
     def _execute_query_func(self, func: Callable[[Connection], Any]):
-        conn = self.get_connection_object().connect()
-        res = func(conn)
-        self.get_connection_object().disconnect()
+        with self.begin_transaction() as transaction:
+            res = func(transaction)
         return res
 
     def execute(
