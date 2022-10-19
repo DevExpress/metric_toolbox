@@ -10,41 +10,43 @@ from toolbox.utils.converters import (
 )
 
 
+_cache = None
+
+
+def _get_or_create_cache():
+    global _cache
+    if _cache is None:
+        _cache = RedisCache()
+    return _cache
+
+
 class CacheObject:
 
-    @staticmethod
-    def get_underlying_cache():
-        if not hasattr(CacheObject, '_underlying_cache'):
-            CacheObject._underlying_cache = RedisCache()
-        return CacheObject._underlying_cache
+    def get_underlying_cache(self):
+        return _get_or_create_cache()
 
     def __init__(
         self,
         base_key: str,
         expire: int = 300000,
-
     ):
         self.__base_key = base_key
         self.expire = expire
 
     def get(self, *args) -> Union[str, None]:
-        return CacheObject.get_underlying_cache().get(
-            key=self.__get_key(*args)
-        )
+        return self.get_underlying_cache().get(key=self.__get_key(*args))
 
     def get_df(self, *args, **kwargs) -> DataFrame:
         return JSON_to_DF.convert(json=self.get(*args), **kwargs)
-    
+
     def get_object(self, *args, **kwargs) -> Any:
         return JSON_to_object.convert(json_obj=self.get(*args), **kwargs)
 
     def __get_key(self, *args):
-        return CacheObject.get_underlying_cache().get_key(
-            self.__base_key, *args
-        )
+        return self.get_underlying_cache().get_key(self.__base_key, *args)
 
     def save(self, value: str, key: Iterable = []):
-        CacheObject.get_underlying_cache().set(
+        self.get_underlying_cache().set(
             key=self.__get_key(*key),
             value=value,
             ex=self.expire,
