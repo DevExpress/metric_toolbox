@@ -20,8 +20,11 @@ class CacheObject:
     def __init__(
         self,
         base_key: str,
+        expire: int = 300000,
+
     ):
         self.__base_key = base_key
+        self.expire = expire
 
     def get(self, *args) -> Union[str, None]:
         return CacheObject.get_underlying_cache().get(
@@ -40,7 +43,7 @@ class CacheObject:
         CacheObject.get_underlying_cache().set(
             key=self.__get_key(*key),
             value=value,
-            ex=300000,
+            ex=self.expire,
         )
 
     def convert_value_to_json_and_save(
