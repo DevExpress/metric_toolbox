@@ -17,7 +17,11 @@ class DF_to_JSON:
 class JSON_to_DF:
 
     @staticmethod
-    def convert(json: str, dt_cols: List[str] = []) -> DataFrame:
+    def convert(
+        json: str,
+        dt_cols: List[str] = [],
+        utc: bool = True,
+    ) -> DataFrame:
         if not json:
             raise ValueError('Empty response')
 
@@ -26,7 +30,7 @@ class JSON_to_DF:
             orient='records',
         )
 
-        DateTimeColumnsConverter.convert(df, dt_cols)
+        DateTimeColumnsConverter.convert(df, dt_cols, utc)
 
         return df
 
@@ -34,20 +38,34 @@ class JSON_to_DF:
 class DateTimeColumnsConverter:
 
     @staticmethod
-    def convert(df: DataFrame, cols: List[str], utc: bool = True):
+    def convert(
+        df: DataFrame,
+        cols: List[str],
+        utc: bool = True,
+        drop_utc: bool = False,
+    ):
         for col in cols:
             if col in df.columns:
                 df[col] = to_datetime(
                     df[col],
                     utc=utc,
                 )
+                if drop_utc:
+                    df[col] = df[col].dt.tz_localize(None)
 
     @staticmethod
-    def convert_many(dfs: Iterable[DataFrame], cols: List[str], utc: bool = True):
+    def convert_many(
+        dfs: Iterable[DataFrame],
+        cols: List[str],
+        utc: bool = True,
+        drop_utc: bool = False
+    ):
         for df in dfs:
             DateTimeColumnsConverter.convert(
                 df=df,
                 cols=cols,
+                utc=utc,
+                drop_utc=drop_utc,
             )
 
 
