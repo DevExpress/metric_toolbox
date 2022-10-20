@@ -1,6 +1,6 @@
 import json
 import numbers
-from typing import List, Iterable
+from typing import List, Iterable, Any
 from pandas import DataFrame, read_json, to_datetime
 
 
@@ -90,5 +90,5 @@ class Object_to_JSON:
 class JSON_to_object:
 
     @staticmethod
-    def convert(json_obj: str) -> str:
+    def convert(json_obj: str) -> Any:
         return json.loads(json_obj)
