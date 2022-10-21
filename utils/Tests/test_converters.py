@@ -56,3 +56,8 @@ def test_converter(
         assert_frame_equal(convert(args), result)
     else:
         assert convert(args) == result
+
+def test_JSON_to_DF_raises_ValueError_if_json_is_empty():
+    with pytest.raises(ValueError) as exec_info:
+         JSON_to_DF.convert(json='')
+    assert str(exec_info.value) == 'Empty response'
