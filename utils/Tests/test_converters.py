@@ -2,7 +2,11 @@ import pytest
 from typing import Callable, Any
 from pandas import DataFrame
 from pandas.testing import assert_frame_equal
-from toolbox.utils.Tests.data import df_data, TstClass
+from toolbox.utils.Tests.data import (
+    df_data,
+    ds_data,
+    TstClass,
+)
 
 from toolbox.utils.converters import (
     JSON_to_DF,
@@ -10,6 +14,7 @@ from toolbox.utils.converters import (
     JSON_to_object,
     Object_to_JSON,
     Objects_to_JSON,
+    DateTimeColumnsConverter,
 )
 
 
@@ -57,7 +62,31 @@ def test_converter(
     else:
         assert convert(args) == result
 
+
 def test_JSON_to_DF_raises_ValueError_if_json_is_empty():
     with pytest.raises(ValueError) as exec_info:
-         JSON_to_DF.convert(json='')
+        JSON_to_DF.convert(json='')
     assert str(exec_info.value) == 'Empty response'
+
+
+@pytest.mark.parametrize(
+    'df,result,drop_utc', [
+        (
+            DataFrame(data=ds_data),
+            'datetime64[ns, UTC]',
+            False,
+        ),
+        (
+            DataFrame(data=ds_data),
+            'datetime64[ns]',
+            True,
+        ),
+    ]
+)
+def test_DateTimeColumnsConverter(df: DataFrame, result: str, drop_utc: bool):
+    DateTimeColumnsConverter.convert(
+        df=df,
+        cols=['ds'],
+        drop_utc=drop_utc,
+    )
+    assert str(df['ds'].dtype) == result
