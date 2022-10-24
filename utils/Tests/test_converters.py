@@ -50,6 +50,11 @@ from toolbox.utils.converters import (
             ],
             '["qwe", "asd", "3"]',
         ),
+        (
+            Objects_to_JSON.convert,
+            [1, 2, 3],
+            '[1, 2, 3]',
+        ),
     ],
 )
 def test_converter(
