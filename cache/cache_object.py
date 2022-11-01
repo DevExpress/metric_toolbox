@@ -6,6 +6,7 @@ from toolbox.utils.converters import (
     DF_to_JSON,
     JSON_to_DF,
     Objects_to_JSON,
+    Object_to_JSON,
     JSON_to_object,
 )
 
@@ -56,11 +57,14 @@ class CacheObject:
         self,
         value: Union[DataFrame, Iterable],
         key: Iterable = [],
+        deep_convert: bool = True,
     ) -> str:
         if isinstance(value, DataFrame):
             res_json = DF_to_JSON.convert(df=value)
-        else:
+        elif deep_convert:
             res_json = Objects_to_JSON.convert(objects=value)
+        else:
+            res_json = Object_to_JSON.convert(obj=value)
         self.save(
             key=key,
             value=res_json,
