@@ -6,7 +6,7 @@ from pandas import DataFrame, read_sql
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Connection, Engine, Transaction
 from toolbox.sql.sql_query import SqlQuery
-from toolbox.sql.sqlite_data_base import SQLiteDataBase
+from toolbox.sql.sqlite_data_base import get_or_create_db
 from toolbox.logger import Logger
 
 
@@ -240,7 +240,7 @@ class SQLiteQueryExecutor(SqlQueryExecutorBase):
         self,
         data_base: str = None,
     ):
-        self.data_base = SQLiteDataBase(name=data_base)
+        self.data_base = get_or_create_db(name=data_base)
 
     def execute(
         self,

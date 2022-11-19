@@ -1,6 +1,17 @@
 import sqlite3
+import os
 from pandas import DataFrame
 from typing import Any, Dict
+
+
+_db = None
+
+
+def get_or_create_db(name: str = None):
+    global _db
+    if _db is None:
+        _db = SQLiteDataBase(name or os.environ['SQLITE_DATABASE'])
+    return _db
 
 
 class SQLiteDataBase:
