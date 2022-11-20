@@ -1,5 +1,4 @@
-from typing import Iterable, Type, Union, Dict
-
+from typing import Iterable, Type, Union, Dict, List
 import toolbox.sql.columns_validator as columns_validator
 from pandas import DataFrame
 from toolbox.sql.query_executors import (
@@ -52,13 +51,13 @@ class BaseRepository:
             must_have_columns=must_have_columns,
         )
 
-    def get_main_query_path(self, kwargs: dict) -> str:
+    def get_main_query_path(self, kwargs: Dict) -> str:
         return kwargs['query_file_path']
 
-    def get_main_query_format_params(self, kwargs: dict) -> dict[str, str]:
+    def get_main_query_format_params(self, kwargs: Dict) -> Dict[str, str]:
         return kwargs['query_format_params']
 
-    def get_must_have_columns(self, kwargs: dict) -> list[str]:
+    def get_must_have_columns(self, kwargs: Dict) -> List[str]:
         return kwargs['must_have_columns']
 
 
