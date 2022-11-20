@@ -26,8 +26,8 @@ class BaseRepository:
 
     def execute_query(self, **kwargs) -> Union[DataFrame, str, None]:
         query = self.sql_query_type(
-            query_file_path=kwargs['query_file_path'],
-            format_params=kwargs['query_format_params'],
+            query_file_path=self.get_main_query_path(kwargs),
+            format_params=self.get_main_query_format_params(kwargs),
         )
         return self.query_executor.execute(sql_query=query)
 
@@ -35,7 +35,7 @@ class BaseRepository:
         query_result: DataFrame = self.execute_query(**kwargs)
         self.validate_query_result(
             query_result=query_result,
-            must_have_columns=kwargs['must_have_columns'],
+            must_have_columns=self.get_must_have_columns(kwargs),
         )
         return query_result.reset_index(drop=True)
 
@@ -51,6 +51,15 @@ class BaseRepository:
             df=query_result,
             must_have_columns=must_have_columns,
         )
+
+    def get_main_query_path(self, kwargs: dict) -> str:
+        return kwargs['query_file_path']
+
+    def get_main_query_format_params(self, kwargs: dict) -> dict[str, str]:
+        return kwargs['query_format_params']
+
+    def get_must_have_columns(self, kwargs: dict) -> list[str]:
+        return kwargs['must_have_columns']
 
 
 class JSONBasedRepository(BaseRepository):
