@@ -1,6 +1,7 @@
 import pytest
 from typing import Callable, Any
 from pandas import DataFrame
+from datetime import datetime
 from pandas.testing import assert_frame_equal
 from toolbox.utils.Tests.data import (
     df_data,
@@ -15,12 +16,12 @@ from toolbox.utils.converters import (
     Object_to_JSON,
     Objects_to_JSON,
     DateTimeColumnsConverter,
+    DateTimeToSqlString,
 )
 
 
 @pytest.mark.parametrize(
-    'convert, args, result',
-    [
+    'convert, args, result', [
         (
             DF_to_JSON.convert,
             DataFrame(data=df_data),
@@ -55,7 +56,27 @@ from toolbox.utils.converters import (
             [1, 2, 3],
             '[1, 2, 3]',
         ),
-    ],
+        (
+            DateTimeToSqlString.convert,
+            datetime(2022, 10, 13),
+            '20221013',
+        ),
+        (
+            DateTimeToSqlString.convert,
+            datetime(2022, 9, 13),
+            '20220913',
+        ),
+        (
+            DateTimeToSqlString.convert,
+            datetime(2022, 8, 9),
+            '20220809',
+        ),
+        (
+            DateTimeToSqlString.convert,
+            datetime(2022, 11, 9),
+            '20221109',
+        ),
+    ]
 )
 def test_converter(
     convert: Callable,

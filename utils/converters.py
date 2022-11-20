@@ -1,6 +1,7 @@
 import json
 import numbers
 from typing import List, Iterable, Any
+from datetime import date
 from pandas import DataFrame, read_json, to_datetime
 
 
@@ -92,3 +93,10 @@ class JSON_to_object:
     @staticmethod
     def convert(json_obj: str) -> Any:
         return json.loads(json_obj)
+
+
+class DateTimeToSqlString:
+
+    @staticmethod
+    def convert(date: date) -> str:
+        return date.strftime('%Y%m%d')
