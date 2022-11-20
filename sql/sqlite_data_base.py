@@ -10,7 +10,7 @@ _db = None
 def get_or_create_db(name: str = None):
     global _db
     if _db is None:
-        _db = SQLiteDataBase(name or os.environ['SQLITE_DATABASE'])
+        _db = SQLiteDataBase(name)
     return _db
 
 
@@ -26,7 +26,7 @@ class SQLiteDataBase:
 
     def connect(self) -> None:
         self.disconnect()
-        self._connection = sqlite3.connect(database=self.data_base)
+        self._connection = sqlite3.connect(database=self.data_base or os.environ['SQLITE_DATABASE'])
 
     def disconnect(self) -> None:
         if self._connection is not None:
