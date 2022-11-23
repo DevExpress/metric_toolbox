@@ -1,7 +1,7 @@
 from typing import Iterable, Type, Union, Dict, List
 import toolbox.sql.columns_validator as columns_validator
 from pandas import DataFrame
-from toolbox.sql.query_executors import (
+from toolbox.sql.query_executors.sql_server_query_executor import (
     JsonMSSqlReadQueryExecutor,
     SqlQueryExecutor,
     SqlQueryExecutorBase,
