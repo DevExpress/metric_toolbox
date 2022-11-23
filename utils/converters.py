@@ -8,9 +8,9 @@ from pandas import DataFrame, read_json, to_datetime
 class DF_to_JSON:
 
     @staticmethod
-    def convert(df: DataFrame) -> str:
+    def convert(df: DataFrame, orient: str = 'records') -> str:
         return df.to_json(
-            orient='records',
+            orient=orient,
             date_format='iso',
         )
 
