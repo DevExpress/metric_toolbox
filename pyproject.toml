@@ -6,14 +6,15 @@ version = "0.0.1"
 
 [tool.poetry.dependencies]
 pandas = "^1.4.3"
+pathlib = "^1.0.1"
 pydantic = "^1.9.1"
+pyodbc = "^4.0.34"
 python = "^3.8"
 redis = "^4.3.4"
-pyodbc = "^4.0.34"
-pathlib = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
+jsonschema = "^4.17.0"
 pylint = "^2.13.7"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
