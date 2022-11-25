@@ -76,3 +76,17 @@ class JSONBasedRepository(BaseRepository):
 
     def get_data(self, **kwargs) -> str:
         return self.execute_query(**kwargs)
+
+
+class SqliteRepository(BaseRepository):
+
+    def __init__(
+        self,
+        sql_query_type: Type[SqlQuery] = SqlQuery,
+        query_executor: SqlQueryExecutorBase = SqlQueryExecutor(),
+    ) -> None:
+        BaseRepository.__init__(
+            self,
+            sql_query_type=sql_query_type,
+            query_executor=query_executor,
+        )
