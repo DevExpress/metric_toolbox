@@ -2,7 +2,7 @@ import pytest
 from typing import Dict, Any
 from pandas import DataFrame
 
-from toolbox.sql.base_repository import BaseRepository
+from toolbox.sql.repository import Repository
 from toolbox.sql.sql_query import SqlQuery
 from toolbox.sql.query_executors.sqlite_query_executor import SQLiteQueryExecutor
 from toolbox.sql.columns_validator import InvalidDataFormatException
@@ -31,7 +31,7 @@ def test_raise_exception_if_data_does_not_contain_required_columns():
         )
         columns = sorted(['asd', 'qwe'])
         with pytest.raises(InvalidDataFormatException) as exec_info:
-            BaseRepository(
+            Repository(
                 sql_query_type=SqlQuery,
                 query_executor=SQLiteQueryExecutor,
             ).get_data(
