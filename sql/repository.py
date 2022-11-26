@@ -2,7 +2,7 @@ from typing import Iterable, Type, Union, Dict, List
 import toolbox.sql.columns_validator as columns_validator
 from pandas import DataFrame
 from toolbox.sql.query_executors.sql_server_query_executor import (
-    JsonMSSqlReadQueryExecutor,
+    JsonSqlServerReadQueryExecutor,
     SqlServerQueryExecutor,
     SqlQueryExecutor,
 )
@@ -67,7 +67,7 @@ class JSONBasedRepository(Repository):
     def __init__(
         self,
         sql_query_type: Type[SqlQuery] = SqlQuery,
-        query_executor: SqlQueryExecutor = JsonMSSqlReadQueryExecutor(),
+        query_executor: SqlQueryExecutor = JsonSqlServerReadQueryExecutor(),
     ) -> None:
         Repository.__init__(
             self,
