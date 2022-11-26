@@ -55,7 +55,7 @@ class SqlServerQueryExecutor(SqlQueryExecutor):
         return SqlServerConnection()
 
 
-class SqlPostQueryExecutor(SqlServerQueryExecutor):
+class SqlServerPostQueryExecutor(SqlServerQueryExecutor):
 
     def execute(
         self,
@@ -95,7 +95,7 @@ class SqlPostQueryExecutor(SqlServerQueryExecutor):
         raise NotImplementedError()
 
 
-class JsonMSSqlReadQueryExecutor(SqlServerQueryExecutor):
+class JsonSqlServerReadQueryExecutor(SqlServerQueryExecutor):
 
     def _execute_sql_query(
         self,
