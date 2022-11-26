@@ -3,13 +3,14 @@ import toolbox.sql.columns_validator as columns_validator
 from pandas import DataFrame
 from toolbox.sql.query_executors.sql_server_query_executor import (
     JsonMSSqlReadQueryExecutor,
+    SqlServerQueryExecutor,
     SqlQueryExecutor,
-    SqlQueryExecutorBase,
 )
+from toolbox.sql.query_executors.sqlite_query_executor import SQLiteQueryExecutor
 from toolbox.sql.sql_query import SqlQuery
 
 
-class BaseRepository:
+class Repository:
     """
     Loads data from the data base.
     The returned data is the result of an sql query.
@@ -18,10 +19,10 @@ class BaseRepository:
     def __init__(
         self,
         sql_query_type: Type[SqlQuery] = SqlQuery,
-        query_executor: SqlQueryExecutorBase = None,
+        query_executor: SqlQueryExecutor = None,
     ) -> None:
         self.sql_query_type = sql_query_type
-        self.query_executor = query_executor or SqlQueryExecutor()
+        self.query_executor = query_executor or SqlServerQueryExecutor()
 
     def execute_query(self, **kwargs) -> Union[DataFrame, str, None]:
         query = self.sql_query_type(
@@ -61,14 +62,14 @@ class BaseRepository:
         return kwargs['must_have_columns']
 
 
-class JSONBasedRepository(BaseRepository):
+class JSONBasedRepository(Repository):
 
     def __init__(
         self,
         sql_query_type: Type[SqlQuery] = SqlQuery,
-        query_executor: SqlQueryExecutorBase = JsonMSSqlReadQueryExecutor(),
+        query_executor: SqlQueryExecutor = JsonMSSqlReadQueryExecutor(),
     ) -> None:
-        BaseRepository.__init__(
+        Repository.__init__(
             self,
             sql_query_type=sql_query_type,
             query_executor=query_executor,
@@ -78,14 +79,14 @@ class JSONBasedRepository(BaseRepository):
         return self.execute_query(**kwargs)
 
 
-class SqliteRepository(BaseRepository):
+class SqliteRepository(Repository):
 
     def __init__(
         self,
         sql_query_type: Type[SqlQuery] = SqlQuery,
-        query_executor: SqlQueryExecutorBase = SqlQueryExecutor(),
+        query_executor: SqlQueryExecutor = SQLiteQueryExecutor(),
     ) -> None:
-        BaseRepository.__init__(
+        Repository.__init__(
             self,
             sql_query_type=sql_query_type,
             query_executor=query_executor,

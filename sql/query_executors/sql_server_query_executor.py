@@ -1,12 +1,14 @@
 import os
 from typing import Any, Dict, Iterable, Optional, Union
-from pandas import DataFrame, read_sql
+from pandas import DataFrame
 from sqlalchemy import create_engine
 from toolbox.sql.sql_query import SqlQuery
-from toolbox.sql.query_executors.base.query_executor import SqlQueryExecutorBase
-from toolbox.sql.query_executors.base.connection_object import ConnectionObject
-from toolbox.sql.query_executors.base.protocols import DbEngine, Transaction
-from toolbox.logger import Logger
+from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor
+from toolbox.sql.query_executors.connection import (
+    DbEngine,
+    Transaction,
+    Connection,
+)
 
 
 _engine = None
@@ -41,94 +43,19 @@ class ConnectionParams:
         )
 
 
-class SqlServerConnectionObject(ConnectionObject):
+class SqlServerConnection(Connection):
 
     def _get_or_create_engine(self) -> DbEngine:
         return _get_or_create_engine()
 
 
-class SqlQueryExecutor(SqlQueryExecutorBase):
+class SqlServerQueryExecutor(SqlQueryExecutor):
 
-    def get_connection_object(self) -> ConnectionObject:
-        return SqlServerConnectionObject()
-
-    def execute(
-        self,
-        sql_query: SqlQuery,
-        kwargs: Dict[str, Any] = {},
-    ) -> DataFrame:
-
-        def func(conn: Transaction):
-            return self._execute_sql_query(
-                sql_query=sql_query,
-                connection=conn,
-                kwargs=kwargs,
-            )
-
-        return self._execute_query_func(func=func)
-
-    def _execute_prep_queries(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        conn: Transaction,
-    ):
-        for sql_query in prep_queries:
-            Logger.debug(sql_query._query_file_path)
-            conn.execute(sql_query.get_query())
-
-    def execute_many(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        main_query: SqlQuery,
-        main_query_read_kwargs: Dict[str, Any] = {},
-    ) -> DataFrame:
-
-        def func(conn: Transaction):
-            self._execute_prep_queries(prep_queries, conn)
-            Logger.debug(main_query._query_file_path)
-            return self._execute_sql_query(
-                sql_query=main_query,
-                connection=conn,
-                kwargs=main_query_read_kwargs,
-            )
-
-        return self._execute_query_func(func=func)
-
-    def execute_many_main_queries(
-        self,
-        prep_queries: Iterable[SqlQuery],
-        main_queries: Dict[str, SqlQuery],
-        main_query_read_kwargs: Dict[str, Any] = {},
-    ) -> Dict[str, DataFrame]:
-
-        def func(conn: Transaction):
-            self._execute_prep_queries(prep_queries, conn)
-            res = {}
-            for k, v in main_queries.items():
-                Logger.debug(f'{k} : {v._query_file_path}')
-                res[k] = self._execute_sql_query(
-                    sql_query=v,
-                    connection=conn,
-                    kwargs=main_query_read_kwargs,
-                )
-            return res
-
-        return self._execute_query_func(func=func)
-
-    def _execute_sql_query(
-        self,
-        sql_query: SqlQuery,
-        connection: Transaction,
-        kwargs: Dict[str, Any],
-    ) -> DataFrame:
-        return read_sql(
-            sql=sql_query.get_query(),
-            con=connection,
-            **kwargs,
-        )
+    def get_connection_object(self) -> Connection:
+        return SqlServerConnection()
 
 
-class SqlPostQueryExecutor(SqlQueryExecutor):
+class SqlPostQueryExecutor(SqlServerQueryExecutor):
 
     def execute(
         self,
@@ -168,7 +95,7 @@ class SqlPostQueryExecutor(SqlQueryExecutor):
         raise NotImplementedError()
 
 
-class JsonMSSqlReadQueryExecutor(SqlQueryExecutor):
+class JsonMSSqlReadQueryExecutor(SqlServerQueryExecutor):
 
     def _execute_sql_query(
         self,

@@ -1,5 +1,5 @@
+from abc import ABC, abstractmethod
 from typing import Protocol
-from abc import abstractmethod
 
 
 class Transaction(Protocol):
@@ -19,6 +19,15 @@ class Transaction(Protocol):
 
 class DbEngine(Protocol):
 
-    @abstractmethod
     def begin(self) -> Transaction:
         pass
+
+
+class Connection(ABC):
+
+    @abstractmethod
+    def _get_or_create_engine(self) -> DbEngine:
+        pass
+
+    def begin_transaction(self) -> Transaction:
+        return self._get_or_create_engine().begin()
