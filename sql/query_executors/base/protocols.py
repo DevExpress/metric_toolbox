@@ -19,5 +19,6 @@ class Transaction(Protocol):
 
 class DbEngine(Protocol):
 
+    @abstractmethod
     def begin(self) -> Transaction:
         pass
