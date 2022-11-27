@@ -98,5 +98,5 @@ class JSON_to_object:
 class DateTimeToSqlString:
 
     @staticmethod
-    def convert(date: date) -> str:
-        return date.strftime('%Y%m%d')
+    def convert(date: date, separator='') -> str:
+        return date.strftime(f'%Y{separator}%m{separator}%d')

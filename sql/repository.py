@@ -32,14 +32,15 @@ class Repository:
         )
         return self.query_executor.execute(sql_query=query)
 
-    def get_data(self,
-                 **kwargs) -> Union[Dict[str, DataFrame], DataFrame, str]:
+    # yapf: disable
+    def get_data(self, **kwargs) -> Union[Dict[str, DataFrame], DataFrame, str]:
         query_result: DataFrame = self.execute_query(**kwargs)
         self.validate_query_result(
             query_result=query_result,
             must_have_columns=self.get_must_have_columns(kwargs),
         )
         return query_result.reset_index(drop=True)
+    # yapf: enable
 
     def get_data_json(self, **kwargs) -> str:
         return DF_to_JSON.convert(self.get_data(**kwargs))
