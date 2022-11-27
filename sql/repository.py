@@ -2,12 +2,13 @@ from typing import Iterable, Type, Union, Dict, List
 import toolbox.sql.columns_validator as columns_validator
 from pandas import DataFrame
 from toolbox.sql.query_executors.sql_server_query_executor import (
-    JsonSqlServerReadQueryExecutor,
+    JsonMSSqlReadQueryExecutor,
     SqlServerQueryExecutor,
     SqlQueryExecutor,
 )
 from toolbox.sql.query_executors.sqlite_query_executor import SQLiteQueryExecutor
 from toolbox.sql.sql_query import SqlQuery
+from toolbox.utils.converters import DF_to_JSON
 
 
 class Repository:
@@ -39,6 +40,9 @@ class Repository:
         )
         return query_result.reset_index(drop=True)
 
+    def get_data_json(self, **kwargs) -> str:
+        return DF_to_JSON.convert(self.get_data(**kwargs))
+
     def update_data(self, **kwargs) -> None:
         return self.execute_query(**kwargs)
 
@@ -67,7 +71,7 @@ class JSONBasedRepository(Repository):
     def __init__(
         self,
         sql_query_type: Type[SqlQuery] = SqlQuery,
-        query_executor: SqlQueryExecutor = JsonSqlServerReadQueryExecutor(),
+        query_executor: SqlQueryExecutor = JsonMSSqlReadQueryExecutor(),
     ) -> None:
         Repository.__init__(
             self,
@@ -77,6 +81,9 @@ class JSONBasedRepository(Repository):
 
     def get_data(self, **kwargs) -> str:
         return self.execute_query(**kwargs)
+
+    def get_data_json(self, **kwargs) -> str:
+        return self.get_data(**kwargs)
 
 
 class SqliteRepository(Repository):
