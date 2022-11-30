@@ -25,6 +25,10 @@ class Repository:
         self.sql_query_type = sql_query_type
         self.query_executor = query_executor or SqlServerQueryExecutor()
 
+    @classmethod
+    def create(cls):
+        return cls()
+
     def execute_query(self, **kwargs) -> Union[DataFrame, str, None]:
         query = self.sql_query_type(
             query_file_path=self.get_main_query_path(kwargs),
