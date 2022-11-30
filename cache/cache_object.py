@@ -46,12 +46,13 @@ class CacheObject:
     def __get_key(self, *args):
         return self.get_underlying_cache().get_key(self.__base_key, *args)
 
-    def save(self, value: str, key: Iterable = []):
+    def save(self, value: str, key: Iterable = []) -> str:
         self.get_underlying_cache().set(
             key=self.__get_key(*key),
             value=value,
             ex=self.expire,
         )
+        return value
 
     def convert_value_to_json_and_save(
         self,
