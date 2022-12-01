@@ -19,7 +19,11 @@ class SQLiteDataBase:
     def begin(self):
         return sqlite3.connect(database=os.environ['SQLITE_DATABASE'])
 
-    def save_tables(self, tables: Dict[str, DataFrame]) -> None:
+    def save_tables(
+        self,
+        tables: Dict[str, DataFrame],
+        create_index_expressions: Dict[str, str] = {},
+    ) -> None:
         with self.begin() as conn:
             if tables is not None:
                 for k, v in tables.items():
@@ -29,3 +33,18 @@ class SQLiteDataBase:
                         if_exists='replace',
                         index=False,
                     )
+                    self.try_create_index(
+                        table=k,
+                        create_index_expressions=create_index_expressions,
+                        conn=conn,
+                    )
+
+    def try_create_index(
+        self,
+        table: str,
+        create_index_expressions: Dict[str, str],
+        conn: sqlite3.Connection,
+    ):
+        expr = create_index_expressions.get(table, None)
+        if expr is not None:
+            conn.execute(expr)
