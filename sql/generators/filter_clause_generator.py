@@ -18,7 +18,9 @@ class SqlFilterClauseGenerator:
             return res
 
         return self._generate_filter(
-            values=values, filter_prefix=filter_prefix, get_filter=filter_func
+            values=values,
+            filter_prefix=filter_prefix,
+            get_filter=filter_func,
         )
 
     def generate_like_filter(
@@ -35,7 +37,9 @@ class SqlFilterClauseGenerator:
             return res
 
         return self._generate_filter(
-            values=values, filter_prefix=filter_prefix, get_filter=filter_func
+            values=values,
+            filter_prefix=filter_prefix,
+            get_filter=filter_func,
         )
 
     def _generate_filter(
