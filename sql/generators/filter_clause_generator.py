@@ -23,6 +23,26 @@ class SqlFilterClauseGenerator:
             get_filter=filter_func,
         )
 
+    def generate_not_in_filter(
+        self,
+        col: str,
+        values: list,
+        filter_prefix: str,
+        values_converter: Callable[[Any], str],
+    ) -> str:
+
+        def filter_func():
+            res = f'{col} NOT IN ('
+            res += ','.join([values_converter(val) for val in values])
+            res += ')'
+            return res
+
+        return self._generate_filter(
+            values=values,
+            filter_prefix=filter_prefix,
+            get_filter=filter_func,
+        )
+
     def generate_like_filter(
         self,
         col: str,
@@ -33,6 +53,25 @@ class SqlFilterClauseGenerator:
         def filter_func():
             res = '('
             res += ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
+            res += ')'
+            return res
+
+        return self._generate_filter(
+            values=values,
+            filter_prefix=filter_prefix,
+            get_filter=filter_func,
+        )
+    
+    def generate_not_like_filter(
+        self,
+        col: str,
+        values: list,
+        filter_prefix: str,
+    ):
+
+        def filter_func():
+            res = '('
+            res += ' OR '.join([f"{col} NOT LIKE '%{value}%'" for value in values])
             res += ')'
             return res
 
