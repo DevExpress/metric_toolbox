@@ -71,28 +71,28 @@ def test_generate_in_filter(
             ['p1', 'p2'],
             'WHERE ',
             lambda val: f"'{val}'",
-            "WHERE col NOT IN ('p1','p2')",
+            "WHERE (col IS NULL OR col NOT IN ('p1','p2'))",
         ),
         (
             'col',
             ['p1'],
             'WHERE ',
             lambda val: f"'{val}'",
-            "WHERE col NOT IN ('p1')",
+            "WHERE (col IS NULL OR col NOT IN ('p1'))",
         ),
         (
             'col',
             [1, 2],
             'AND ',
             str,
-            "AND col NOT IN (1,2)",
+            "AND (col IS NULL OR col NOT IN (1,2))",
         ),
         (
             'col',
             [1],
             'AND ',
             str,
-            "AND col NOT IN (1)",
+            "AND (col IS NULL OR col NOT IN (1))",
         ),
     ]
 )
@@ -158,13 +158,13 @@ def test_generate_like_filter(
             'col',
             ['p1', 'p2'],
             'WHERE ',
-            "WHERE (col NOT LIKE '%p1%' OR col NOT LIKE '%p2%')",
+            "WHERE (col IS NULL OR col NOT LIKE '%p1%' OR col NOT LIKE '%p2%')",
         ),
         (
             'col',
             ['p1'],
             'AND ',
-            "AND (col NOT LIKE '%p1%')",
+            "AND (col IS NULL OR col NOT LIKE '%p1%')",
         ),
     ]
 )

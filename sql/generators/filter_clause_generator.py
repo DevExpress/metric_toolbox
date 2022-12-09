@@ -32,9 +32,9 @@ class SqlFilterClauseGenerator:
     ) -> str:
 
         def filter_func():
-            res = f'{col} NOT IN ('
+            res = f'({col} IS NULL OR {col} NOT IN ('
             res += ','.join([values_converter(val) for val in values])
-            res += ')'
+            res += '))'
             return res
 
         return self._generate_filter(
@@ -70,7 +70,7 @@ class SqlFilterClauseGenerator:
     ):
 
         def filter_func():
-            res = '('
+            res = f'({col} IS NULL OR '
             res += ' OR '.join([f"{col} NOT LIKE '%{value}%'" for value in values])
             res += ')'
             return res
