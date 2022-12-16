@@ -1,4 +1,4 @@
-from typing import Iterable, Union, Any
+from typing import Iterable, Union, Any, Optional
 from pandas import DataFrame
 
 from toolbox.cache.redis_cache import RedisCache
@@ -29,12 +29,12 @@ class CacheObject:
     def __init__(
         self,
         base_key: str,
-        expire: int = 300000,
+        expire: Optional[int] = 300000,
     ):
         self.__base_key = base_key
         self.expire = expire
 
-    def get(self, *args) -> Union[str, None]:
+    def get(self, *args) -> Optional[str]:
         return self.get_underlying_cache().get(key=self.__get_key(*args))
 
     def get_df(self, *args, **kwargs) -> DataFrame:
