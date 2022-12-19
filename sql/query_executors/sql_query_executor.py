@@ -10,24 +10,6 @@ from toolbox.logger import Logger
 
 
 class SqlQueryExecutor(ABC):
-    """
-    Executes and sql query passed to the execute method.
-    """
-
-    def execute(
-        self,
-        sql_query: SqlQuery,
-        kwargs: Dict[str, Any] = {},
-    ) -> DataFrame:
-
-        def func(conn: Transaction):
-            return self._execute_sql_query(
-                sql_query=sql_query,
-                connection=conn,
-                kwargs=kwargs,
-            )
-
-        return self._execute_query_func(func=func)
 
     def _execute_prep_queries(
         self,

@@ -34,7 +34,10 @@ class Repository:
             query_file_path=self.get_main_query_path(kwargs),
             format_params=self.get_main_query_format_params(kwargs),
         )
-        return self.query_executor.execute(sql_query=query)
+        return self.query_executor.execute_many(
+            prep_queries=self.get_prep_queries(kwargs),
+            main_query=query,
+        )
 
     # yapf: disable
     def get_data(self, **kwargs) -> Union[Dict[str, DataFrame], DataFrame, str]:
@@ -70,6 +73,9 @@ class Repository:
 
     def get_must_have_columns(self, kwargs: Dict) -> List[str]:
         return kwargs['must_have_columns']
+
+    def get_prep_queries(self, kwargs: Dict) -> List[SqlQuery]:
+        return []
 
 
 class JSONBasedRepository(Repository):
