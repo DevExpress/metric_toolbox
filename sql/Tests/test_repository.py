@@ -1,5 +1,5 @@
 import pytest
-from typing import Dict, Any
+from typing import Dict, Any, Iterable
 from pandas import DataFrame
 
 from toolbox.sql.repository import Repository
@@ -18,15 +18,16 @@ def test_raise_exception_if_data_does_not_contain_required_columns():
     with pytest.MonkeyPatch.context() as monkeypatch:
 
         def mock_execute(
-            sql_query: SqlQuery,
-            kargs: Dict[str, Any] = None,
+            prep_queries: Iterable[SqlQuery],
+            main_query: SqlQuery,
+            main_query_read_kwargs: Dict[str, Any] = {},
         ):
             data = {'col_1': [3, 2, 1, 0], 'col_2': ['a', 'b', 'c', 'd']}
             return DataFrame(data=data)
 
         monkeypatch.setattr(
             SQLiteQueryExecutor,
-            'execute',
+            'execute_many',
             mock_execute,
         )
         columns = sorted(['asd', 'qwe'])
