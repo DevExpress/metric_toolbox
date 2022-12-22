@@ -61,7 +61,7 @@ class SqlFilterClauseGenerator:
             filter_prefix=filter_prefix,
             get_filter=filter_func,
         )
-    
+
     def generate_not_like_filter(
         self,
         col: str,
@@ -70,8 +70,8 @@ class SqlFilterClauseGenerator:
     ):
 
         def filter_func():
-            res = f'({col} IS NULL OR ('
-            res += ' AND '.join([f"{col} NOT LIKE '%{value}%'" for value in values])
+            res = f'({col} IS NULL OR NOT ('
+            res += ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
             res += '))'
             return res
 

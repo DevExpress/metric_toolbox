@@ -158,13 +158,13 @@ def test_generate_like_filter(
             'col',
             ['p1', 'p2'],
             'WHERE ',
-            "WHERE (col IS NULL OR (col NOT LIKE '%p1%' AND col NOT LIKE '%p2%'))",
+            "WHERE (col IS NULL OR NOT (col LIKE '%p1%' OR col LIKE '%p2%'))",
         ),
         (
             'col',
             ['p1'],
             'AND ',
-            "AND (col IS NULL OR (col NOT LIKE '%p1%'))",
+            "AND (col IS NULL OR NOT (col LIKE '%p1%'))",
         ),
     ]
 )
