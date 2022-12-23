@@ -12,10 +12,8 @@ class SqlFilterClauseGenerator:
     ) -> str:
 
         def filter_func():
-            res = f'{col} IN ('
-            res += ','.join([values_converter(val) for val in values])
-            res += ')'
-            return res
+            filter_values = ','.join([values_converter(val) for val in values])
+            return f'{col} IN (' + filter_values + ')'
 
         return self._generate_filter(
             values=values,
@@ -32,12 +30,11 @@ class SqlFilterClauseGenerator:
     ) -> str:
 
         def filter_func():
-            res = f'({col} IS NULL OR {col} NOT IN ('
-            res += ','.join([values_converter(val) for val in values])
-            res += '))'
-            return res
+            filter_values = ','.join([values_converter(val) for val in values])
+            return f'{col} NOT IN (' + filter_values + ')'
 
-        return self._generate_filter(
+        return self._generate_exclude_fitler(
+            col=col,
             values=values,
             filter_prefix=filter_prefix,
             get_filter=filter_func,
@@ -51,10 +48,8 @@ class SqlFilterClauseGenerator:
     ):
 
         def filter_func():
-            res = '('
-            res += ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
-            res += ')'
-            return res
+            filter = ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
+            return f'({filter})'
 
         return self._generate_filter(
             values=values,
@@ -70,16 +65,32 @@ class SqlFilterClauseGenerator:
     ):
 
         def filter_func():
-            res = f'({col} IS NULL OR NOT ('
-            res += ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
-            res += '))'
-            return res
+            filter = ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
+            return f'NOT ({filter})'
 
-        return self._generate_filter(
+        return self._generate_exclude_fitler(
+            col=col,
             values=values,
             filter_prefix=filter_prefix,
             get_filter=filter_func,
         )
+
+    def _generate_exclude_fitler(
+        self,
+        col: str,
+        values: list,
+        filter_prefix: str,
+        get_filter: Callable[[], str],
+    ) -> str:
+        is_null_fitler = f'{col} IS NULL'
+        values_filter = self._generate_filter(
+            values=values,
+            filter_prefix='',
+            get_filter=get_filter,
+        )
+        if values_filter:
+            values_filter = ' OR' + values_filter
+        return filter_prefix + ' (' + is_null_fitler + values_filter + ')'
 
     def _generate_filter(
         self,
@@ -87,7 +98,4 @@ class SqlFilterClauseGenerator:
         filter_prefix: str,
         get_filter: Callable[[], str],
     ) -> str:
-        if not values:
-            return ''
-        actual_filter = get_filter()
-        return filter_prefix + actual_filter
+        return (filter_prefix + ' ' + get_filter()) if values else ''
