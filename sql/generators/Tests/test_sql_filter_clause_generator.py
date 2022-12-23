@@ -179,3 +179,10 @@ def test_generate_not_like_filter(
         values=values,
         filter_prefix=prefix,
     ) == output
+
+
+def test_generate_is_not_null_filter():
+    assert SqlFilterClauseGenerator().generate_is_not_null_filter(
+        col='col',
+        filter_prefix='WHERE',
+    ) == 'WHERE col IS NOT NULL'

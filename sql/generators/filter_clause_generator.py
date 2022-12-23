@@ -2,7 +2,7 @@ from typing import Callable, Any
 
 
 class SqlFilterClauseGenerator:
-
+    # yapf: disable
     def generate_in_filter(
         self,
         col: str,
@@ -74,6 +74,14 @@ class SqlFilterClauseGenerator:
             filter_prefix=filter_prefix,
             get_filter=filter_func,
         )
+# yapf: enable
+
+    def generate_is_not_null_filter(
+        self,
+        filter_prefix: str,
+        col: str,
+    ) -> str:
+        return filter_prefix + f' {col} IS NOT NULL'
 
     def _generate_exclude_fitler(
         self,
