@@ -1,7 +1,7 @@
 import sqlite3
 import os
 from pandas import DataFrame
-from typing import Dict
+from typing import Dict, Iterable
 
 
 _db = None
@@ -42,9 +42,10 @@ class SQLiteDataBase:
     def try_create_index(
         self,
         table: str,
-        create_index_expressions: Dict[str, str],
+        create_index_expressions: Dict[str, Iterable[str]],
         conn: sqlite3.Connection,
     ):
-        expr = create_index_expressions.get(table, None)
-        if expr is not None:
-            conn.execute(expr)
+        exprs = create_index_expressions.get(table, None)
+        if exprs is not None:
+            for expr in exprs:
+                conn.execute(expr)
