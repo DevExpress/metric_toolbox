@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, Iterable, Union
+from typing import Any, Callable, Dict, Iterable, Union, Optional
 from pandas import DataFrame, read_sql
 from toolbox.sql.sql_query import SqlQuery
 from toolbox.sql.query_executors.connection import (
@@ -82,3 +82,43 @@ class SqlQueryExecutor(ABC):
         with self._begin_transaction() as transaction:
             res = func(transaction)
         return res
+
+
+class SqlPostQueryExecutor(SqlQueryExecutor):
+
+    def execute(
+        self,
+        sql_query: SqlQuery,
+        kwargs: Dict[str, Any] = None,
+    ) -> str:
+
+        def func(conn: Transaction):
+            self._execute_prep_queries(
+                prep_queries=[sql_query],
+                conn=conn,
+            )
+
+        self._execute_query_func(func=func)
+
+    def execute_many(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_query: SqlQuery = None,
+        main_query_kwargs: Optional[Dict[str, Any]] = None,
+    ) -> None:
+
+        def func(conn: Transaction):
+            self._execute_prep_queries(
+                prep_queries=prep_queries,
+                conn=conn,
+            )
+
+        self._execute_query_func(func=func)
+
+    def execute_many_main_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        main_queries: Dict[str, SqlQuery],
+        main_query_read_kwargs: Dict[str, Any] = {},
+    ) -> Dict[str, Union[DataFrame, str]]:
+        raise NotImplementedError()

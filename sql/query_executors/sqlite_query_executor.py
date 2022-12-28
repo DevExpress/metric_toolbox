@@ -1,4 +1,4 @@
-from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor
+from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor, SqlPostQueryExecutor
 from toolbox.sql.query_executors.connection import (
     DbEngine,
     Connection,
@@ -14,6 +14,12 @@ class SqliteConnection(Connection):
 
 
 class SQLiteQueryExecutor(SqlQueryExecutor):
+
+    def get_connection_object(self) -> Connection:
+        return SqliteConnection()
+
+
+class SQLitePostQueryExecutor(SqlPostQueryExecutor):
 
     def get_connection_object(self) -> Connection:
         return SqliteConnection()
