@@ -18,6 +18,9 @@ class SqlQueryExecutor(ABC):
     ):
         for sql_query in prep_queries:
             Logger.debug(sql_query._query_file_path)
+            if hasattr(conn, 'executescript'):
+                conn.executescript(sql_query.get_query())
+                return
             conn.execute(sql_query.get_query())
 
     def execute_many(
