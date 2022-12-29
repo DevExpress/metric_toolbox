@@ -98,7 +98,8 @@ class SqlFilterClauseGenerator:
         )
         if values_filter:
             values_filter = ' OR' + values_filter
-        return filter_prefix + ' (' + is_null_fitler + values_filter + ')'
+            return filter_prefix + ' (' + is_null_fitler + values_filter + ')'
+        return filter_prefix + ' ' + is_null_fitler
 
     def _generate_filter(
         self,

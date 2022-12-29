@@ -64,7 +64,7 @@ def test_generate_in_filter(
             [],
             'WHERE',
             str,
-            'WHERE (col IS NULL)',
+            'WHERE col IS NULL',
         ),
         (
             'col',
@@ -152,7 +152,7 @@ def test_generate_like_filter(
             'col',
             [],
             'WHERE',
-            'WHERE (col IS NULL)',
+            'WHERE col IS NULL',
         ),
         (
             'col',
