@@ -55,6 +55,9 @@ class Repository:
     def update_data(self, **kwargs) -> None:
         return self.execute_query(**kwargs)
 
+    def validate_values(self, **kwargs) -> str:
+        raise NotImplementedError()
+
     def validate_query_result(
         self,
         query_result: DataFrame,
