@@ -32,6 +32,7 @@ class SQLiteDataBase:
                         con=conn,
                         if_exists='replace',
                         index=False,
+                        method='multi',
                     )
                     self.try_create_index(
                         table=k,
