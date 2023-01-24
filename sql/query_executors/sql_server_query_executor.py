@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, Optional
 from sqlalchemy import create_engine
 from toolbox.sql.sql_query import SqlQuery
-from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor, SqlPostQueryExecutor
+from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor, SqlNonQueryExecutor
 from toolbox.sql.query_executors.connection import (
     DbEngine,
     Transaction,
@@ -54,7 +54,7 @@ class SqlServerQueryExecutor(SqlQueryExecutor):
         return SqlServerConnection()
 
 
-class SqlServerPostQueryExecutor(SqlPostQueryExecutor):
+class SqlServerNonQueryExecutor(SqlNonQueryExecutor):
 
     def get_connection_object(self) -> Connection:
         return SqlServerConnection()
@@ -62,7 +62,7 @@ class SqlServerPostQueryExecutor(SqlPostQueryExecutor):
 
 class JsonSqlServerReadQueryExecutor(SqlServerQueryExecutor):
 
-    def _execute_sql_query(
+    def _execute_query(
         self,
         sql_query: SqlQuery,
         connection: Transaction,

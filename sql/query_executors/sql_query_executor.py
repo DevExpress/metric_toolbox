@@ -11,17 +11,18 @@ from toolbox.logger import Logger
 
 class SqlQueryExecutor(ABC):
 
-    def _execute_prep_queries(
+    def execute_non_query(
         self,
-        prep_queries: Iterable[SqlQuery],
-        conn: Transaction,
-    ):
-        for sql_query in prep_queries:
-            Logger.debug(sql_query._query_file_path)
-            if hasattr(conn, 'executescript'):
-                conn.executescript(sql_query.get_query())
-                return
-            conn.execute(sql_query.get_query())
+        sql_query: SqlQuery,
+    ) -> None:
+
+        def func(conn: Transaction):
+            self._execute_non_query(
+                sql_query.get_query(),
+                conn=conn,
+            )
+
+        self._execute_query_func(func=func)
 
     def execute_many(
         self,
@@ -33,7 +34,7 @@ class SqlQueryExecutor(ABC):
         def func(conn: Transaction):
             self._execute_prep_queries(prep_queries, conn)
             Logger.debug(main_query._query_file_path)
-            return self._execute_sql_query(
+            return self._execute_query(
                 sql_query=main_query,
                 connection=conn,
                 kwargs=main_query_read_kwargs,
@@ -53,7 +54,7 @@ class SqlQueryExecutor(ABC):
             res = {}
             for k, v in main_queries.items():
                 Logger.debug(f'{k} : {v._query_file_path}')
-                res[k] = self._execute_sql_query(
+                res[k] = self._execute_query(
                     sql_query=v,
                     connection=conn,
                     kwargs=main_query_read_kwargs,
@@ -62,7 +63,7 @@ class SqlQueryExecutor(ABC):
 
         return self._execute_query_func(func=func)
 
-    def _execute_sql_query(
+    def _execute_query(
         self,
         sql_query: SqlQuery,
         connection: Transaction,
@@ -73,6 +74,25 @@ class SqlQueryExecutor(ABC):
             con=connection,
             **kwargs,
         )
+
+    def _execute_non_query(
+        self,
+        sql_query: SqlQuery,
+        conn: Transaction,
+    ):
+        execute = conn.execute
+        if hasattr(conn, 'executescript'):
+            execute = conn.executescript
+        execute(sql_query.get_query())
+
+    def _execute_prep_queries(
+        self,
+        prep_queries: Iterable[SqlQuery],
+        conn: Transaction,
+    ):
+        for sql_query in prep_queries:
+            Logger.debug(sql_query._query_file_path)
+            self._execute_non_query(sql_query.get_query())
 
     @abstractmethod
     def get_connection_object(self) -> Connection:
@@ -87,21 +107,7 @@ class SqlQueryExecutor(ABC):
         return res
 
 
-class SqlPostQueryExecutor(SqlQueryExecutor):
-
-    def execute(
-        self,
-        sql_query: SqlQuery,
-        kwargs: Dict[str, Any] = None,
-    ) -> str:
-
-        def func(conn: Transaction):
-            self._execute_prep_queries(
-                prep_queries=[sql_query],
-                conn=conn,
-            )
-
-        self._execute_query_func(func=func)
+class SqlNonQueryExecutor(SqlQueryExecutor):
 
     def execute_many(
         self,
