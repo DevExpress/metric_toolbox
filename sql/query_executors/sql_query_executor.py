@@ -11,6 +11,19 @@ from toolbox.logger import Logger
 
 class SqlQueryExecutor(ABC):
 
+    def execute_script_non_query(
+        self,
+        script: str,
+    ) -> None:
+
+        def func(conn: Transaction):
+            self._execute_script(
+                script=script,
+                conn=conn,
+            )
+
+        self._execute_query_func(func=func)
+
     def execute_non_query(
         self,
         sql_query: SqlQuery,
@@ -75,16 +88,6 @@ class SqlQueryExecutor(ABC):
             **kwargs,
         )
 
-    def _execute_non_query(
-        self,
-        sql_query: SqlQuery,
-        conn: Transaction,
-    ):
-        execute = conn.execute
-        if hasattr(conn, 'executescript'):
-            execute = conn.executescript
-        execute(sql_query.get_query())
-
     def _execute_prep_queries(
         self,
         prep_queries: Iterable[SqlQuery],
@@ -96,6 +99,26 @@ class SqlQueryExecutor(ABC):
                 sql_query=sql_query,
                 conn=conn,
             )
+
+    def _execute_non_query(
+        self,
+        sql_query: SqlQuery,
+        conn: Transaction,
+    ):
+        self._execute_script(
+            script=sql_query.get_query(),
+            conn=conn,
+        )
+
+    def _execute_script(
+        self,
+        script: str,
+        conn: Transaction,
+    ):
+        execute = conn.execute
+        if hasattr(conn, 'executescript'):
+            execute = conn.executescript
+        execute(script)
 
     @abstractmethod
     def get_connection_object(self) -> Connection:
