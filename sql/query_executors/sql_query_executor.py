@@ -92,7 +92,10 @@ class SqlQueryExecutor(ABC):
     ):
         for sql_query in prep_queries:
             Logger.debug(sql_query._query_file_path)
-            self._execute_non_query(sql_query.get_query())
+            self._execute_non_query(
+                sql_query=sql_query.get_query(),
+                conn=conn,
+            )
 
     @abstractmethod
     def get_connection_object(self) -> Connection:
