@@ -18,7 +18,7 @@ class SqlQueryExecutor(ABC):
 
         def func(conn: Transaction):
             self._execute_non_query(
-                sql_query.get_query(),
+                sql_query=sql_query,
                 conn=conn,
             )
 
