@@ -38,7 +38,6 @@ class SQLiteDataBase:
                         con=conn,
                         if_exists='append' if table_created_manually else 'replace',
                         index=False,
-                        method='multi',
                     )
                     self.try_create_index(
                         table=k,
