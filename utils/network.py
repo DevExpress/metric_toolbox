@@ -12,7 +12,7 @@ class Network:
         end_point: str,
         headers={},
         params={},
-    ):
+    ) -> str:
         resp = requests.get(
             url=end_point,
             headers=headers,
