@@ -1,8 +1,5 @@
 import requests
-import urllib3
-
-
-urllib3.disable_warnings()
+from typing import Tuple
 
 
 class Network:
@@ -12,7 +9,7 @@ class Network:
         end_point: str,
         headers={},
         params={},
-    ):
+    ) -> str:
         resp = requests.get(
             url=end_point,
             headers=headers,
@@ -27,14 +24,14 @@ class Network:
         return resp.text
 
     @staticmethod
-    def post_data(end_point: str, data: str):
+    def post_data(end_point: str, data: str) -> Tuple[int, str]:
         resp = requests.post(url=end_point, json=data)
         Network._raise_if_status_code_indicates_failure(
             end_point=end_point,
             status_code=resp.status_code,
             success_status_code=201,
         )
-        return resp.status_code
+        return (resp.status_code, resp.text)
 
     @staticmethod
     def _raise_if_status_code_indicates_failure(
