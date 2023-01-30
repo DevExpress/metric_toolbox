@@ -1,4 +1,5 @@
 import pytest
+from typing import List
 from typing import Callable, Any
 from toolbox.sql.generators.filter_clause_generator import SqlFilterClauseGenerator
 
@@ -44,7 +45,7 @@ from toolbox.sql.generators.filter_clause_generator import SqlFilterClauseGenera
 )
 def test_generate_in_filter(
     col: str,
-    values: list[str],
+    values: List[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -98,7 +99,7 @@ def test_generate_in_filter(
 )
 def test_generate_not_in_filter(
     col: str,
-    values: list[str],
+    values: List[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -135,7 +136,7 @@ def test_generate_not_in_filter(
 )
 def test_generate_like_filter(
     col: str,
-    values: list[str],
+    values: List[str],
     prefix: str,
     output: str,
 ):
@@ -170,7 +171,7 @@ def test_generate_like_filter(
 )
 def test_generate_not_like_filter(
     col: str,
-    values: list[str],
+    values: List[str],
     prefix: str,
     output: str,
 ):

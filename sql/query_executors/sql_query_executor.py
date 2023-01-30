@@ -138,7 +138,7 @@ class SqlNonQueryExecutor(SqlQueryExecutor):
     def execute_many(
         self,
         prep_queries: Iterable[SqlQuery],
-        main_query: SqlQuery = None,
+        main_query: Optional[SqlQuery] = None,
         main_query_kwargs: Optional[Dict[str, Any]] = None,
     ) -> None:
 
