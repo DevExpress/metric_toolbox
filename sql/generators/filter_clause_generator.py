@@ -96,10 +96,11 @@ class SqlFilterClauseGenerator:
             filter_prefix='',
             get_filter=get_filter,
         )
+        filter_prefix = self.try_add_space(filter_prefix)
         if values_filter:
-            values_filter = ' OR' + values_filter
-            return filter_prefix + ' (' + is_null_fitler + values_filter + ')'
-        return filter_prefix + ' ' + is_null_fitler
+            values_filter = ' OR ' + values_filter
+            return filter_prefix + '(' + is_null_fitler + values_filter + ')'
+        return filter_prefix + is_null_fitler
 
     def _generate_filter(
         self,
@@ -107,4 +108,10 @@ class SqlFilterClauseGenerator:
         filter_prefix: str,
         get_filter: Callable[[], str],
     ) -> str:
-        return (filter_prefix + ' ' + get_filter()) if values else ''
+        filter_prefix = self.try_add_space(filter_prefix)
+        return (filter_prefix + get_filter()) if values else ''
+
+    def try_add_space(self, filter):
+        if filter:
+            return filter + ' '
+        return filter
