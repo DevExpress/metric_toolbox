@@ -1,4 +1,4 @@
-from typing import Callable, Any
+from typing import Callable, Any, Iterable
 
 
 class SqlFilterClauseGenerator:
@@ -6,7 +6,7 @@ class SqlFilterClauseGenerator:
     def generate_in_filter(
         self,
         col: str,
-        values: list,
+        values: Iterable,
         filter_prefix: str,
         values_converter: Callable[[Any], str],
     ) -> str:
@@ -24,7 +24,7 @@ class SqlFilterClauseGenerator:
     def generate_not_in_filter(
         self,
         col: str,
-        values: list,
+        values: Iterable,
         filter_prefix: str,
         values_converter: Callable[[Any], str],
     ) -> str:
@@ -43,7 +43,7 @@ class SqlFilterClauseGenerator:
     def generate_like_filter(
         self,
         col: str,
-        values: list,
+        values: Iterable,
         filter_prefix: str,
     ):
 
@@ -60,7 +60,7 @@ class SqlFilterClauseGenerator:
     def generate_not_like_filter(
         self,
         col: str,
-        values: list,
+        values: Iterable,
         filter_prefix: str,
     ):
 
@@ -86,7 +86,7 @@ class SqlFilterClauseGenerator:
     def _generate_exclude_fitler(
         self,
         col: str,
-        values: list,
+        values: Iterable,
         filter_prefix: str,
         get_filter: Callable[[], str],
     ) -> str:
@@ -104,7 +104,7 @@ class SqlFilterClauseGenerator:
 
     def _generate_filter(
         self,
-        values: list,
+        values: Iterable,
         filter_prefix: str,
         get_filter: Callable[[], str],
     ) -> str:

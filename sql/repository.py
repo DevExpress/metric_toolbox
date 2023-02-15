@@ -1,4 +1,4 @@
-from typing import Iterable, Type, Union, Dict, List
+from typing import Iterable, Type, Union, Dict
 import toolbox.sql.columns_validator as columns_validator
 from pandas import DataFrame
 from toolbox.sql.query_executors.sql_server_query_executor import (
@@ -74,11 +74,11 @@ class Repository:
     def get_main_query_format_params(self, kwargs: Dict) -> Dict[str, str]:
         return kwargs['query_format_params']
 
-    def get_must_have_columns(self, kwargs: Dict) -> List[str]:
+    def get_must_have_columns(self, kwargs: Dict) -> Iterable[str]:
         return kwargs['must_have_columns']
 
-    def get_prep_queries(self, kwargs: Dict) -> List[SqlQuery]:
-        return []
+    def get_prep_queries(self, kwargs: Dict) -> Iterable[SqlQuery]:
+        return tuple()
 
 
 class JSONBasedRepository(Repository):

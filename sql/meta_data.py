@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, Iterable
 
 
 class MetaData:
@@ -22,5 +22,5 @@ class MetaData:
         return cls._get_dict()
 
     @classmethod
-    def get_values(cls) -> List[str]:
-        return list(cls._get_dict().values())
+    def get_values(cls) -> Iterable[str]:
+        return tuple(cls._get_dict().values())

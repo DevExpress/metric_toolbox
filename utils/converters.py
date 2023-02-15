@@ -1,6 +1,6 @@
 import json
 import numbers
-from typing import List, Iterable, Any
+from typing import Iterable, Any
 from datetime import date
 from pandas import DataFrame, read_json, to_datetime
 
@@ -20,7 +20,7 @@ class JSON_to_DF:
     @staticmethod
     def convert(
         json: str,
-        dt_cols: List[str] = [],
+        dt_cols: Iterable[str] = tuple(),
         utc: bool = True,
     ) -> DataFrame:
         if not json:
@@ -41,7 +41,7 @@ class DateTimeColumnsConverter:
     @staticmethod
     def convert(
         df: DataFrame,
-        cols: List[str],
+        cols: Iterable[str],
         utc: bool = True,
         drop_utc: bool = False,
     ):
@@ -57,7 +57,7 @@ class DateTimeColumnsConverter:
     @staticmethod
     def convert_many(
         dfs: Iterable[DataFrame],
-        cols: List[str],
+        cols: Iterable[str],
         utc: bool = True,
         drop_utc: bool = False
     ):
