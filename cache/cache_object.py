@@ -46,7 +46,7 @@ class CacheObject:
     def __get_key(self, *args):
         return self.get_underlying_cache().get_key(self.__base_key, *args)
 
-    def save(self, value: str, key: Iterable = []) -> str:
+    def save(self, value: str, key: Iterable = ()) -> str:
         self.get_underlying_cache().set(
             key=self.__get_key(*key),
             value=value,
@@ -57,7 +57,7 @@ class CacheObject:
     def convert_value_to_json_and_save(
         self,
         value: Union[DataFrame, Iterable],
-        key: Iterable = [],
+        key: Iterable = (),
         deep_convert: bool = True,
     ) -> str:
         if isinstance(value, DataFrame):
