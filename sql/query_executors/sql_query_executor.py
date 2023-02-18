@@ -129,8 +129,7 @@ class SqlQueryExecutor(ABC):
 
     def _execute_query_func(self, func: Callable[[Transaction], Any]):
         with self._begin_transaction() as transaction:
-            res = func(transaction)
-        return res
+            return func(transaction)
 
 
 class SqlNonQueryExecutor(SqlQueryExecutor):
