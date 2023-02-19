@@ -6,7 +6,7 @@ class MetaData:
     @classmethod
     def _get_dict(cls) -> Dict[str, str]:
         res = {}
-        while cls != None:
+        while cls:
             res.update(
                 {
                     k: v
@@ -23,4 +23,4 @@ class MetaData:
 
     @classmethod
     def get_values(cls) -> Iterable[str]:
-        return tuple(cls._get_dict().values())
+        return cls._get_dict().values()
