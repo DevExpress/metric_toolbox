@@ -31,6 +31,3 @@ class Connection(ABC):
 
     def begin_transaction(self) -> Transaction:
         return self._get_or_create_engine().begin()
-
-    def dispose(self, **kwargs):
-        raise NotImplementedError

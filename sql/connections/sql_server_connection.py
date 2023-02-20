@@ -1,24 +1,11 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
 from toolbox.sql.connections.connection import (
     DbEngine,
     Connection,
 )
-
-
-_engine = None
-
-
-def _get_or_create_engine(poolclass=None) -> Engine:
-    global _engine
-    if _engine is None:
-        _engine = create_engine(
-            url=ConnectionParams().get_url(),
-            poolclass=poolclass,  #NullPool,
-        )
-    return _engine
 
 
 class ConnectionParams:
@@ -43,10 +30,22 @@ class ConnectionParams:
         )
 
 
+_engine: Engine = None
+if os.environ.get('PRODUCTION', None):
+    _engine = create_engine(
+        url=ConnectionParams().get_url(),
+        #poolclass=NullPool,
+        pool_reset_on_return=None,
+    )
+
+    @event.listens_for(_engine, 'reset')
+    def reset_mssql(dbapi_connection, connection_record, reset_state):
+        if not reset_state.terminate_only:
+            dbapi_connection.execute('{call sys.sp_reset_connection}')
+        dbapi_connection.rollback()
+
+
 class SqlServerConnection(Connection):
 
     def _get_or_create_engine(self) -> DbEngine:
-        return _get_or_create_engine()
-
-    def dispose(self, **kwargs):
-        _get_or_create_engine().dispose(close=True)
+        return _engine
