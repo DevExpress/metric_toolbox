@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Dict, Iterable, Union, Optional
 from pandas import DataFrame, read_sql
 from toolbox.sql.sql_query import SqlQuery
-from toolbox.sql.query_executors.connection import (
+from toolbox.sql.connections.connection import (
     Transaction,
     Connection,
 )

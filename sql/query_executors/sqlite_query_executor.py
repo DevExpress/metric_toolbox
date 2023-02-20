@@ -1,5 +1,5 @@
 from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor, SqlNonQueryExecutor
-from toolbox.sql.query_executors.connection import (
+from toolbox.sql.connections.connection import (
     DbEngine,
     Connection,
 )
