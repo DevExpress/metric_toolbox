@@ -1,5 +1,6 @@
 from typing import Dict, Iterable
 from pathlib import Path
+from sqlalchemy import text
 
 
 class SqlQuery:
@@ -33,6 +34,12 @@ class SqlQuery:
                 query=self._query_file_path,
                 keys=keys,
             )
+
+
+class SqlAlchemyQuery(SqlQuery):
+
+    def get_query(self) -> str:
+        return text(SqlQuery.get_query(self))
 
 
 class InvalidQueryKeyException(Exception):

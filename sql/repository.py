@@ -7,7 +7,7 @@ from toolbox.sql.query_executors.sql_server_query_executor import (
     SqlQueryExecutor,
 )
 from toolbox.sql.query_executors.sqlite_query_executor import SQLiteQueryExecutor
-from toolbox.sql.sql_query import SqlQuery
+from toolbox.sql.sql_query import SqlQuery, SqlAlchemyQuery
 from toolbox.utils.converters import DF_to_JSON
 
 
@@ -99,6 +99,20 @@ class JSONBasedRepository(Repository):
 
     def get_data_json(self, **kwargs) -> str:
         return self.get_data(**kwargs)
+
+
+class SqlServerRepository(Repository):
+
+    def __init__(
+        self,
+        sql_query_type: Type[SqlQuery] = SqlAlchemyQuery,
+        query_executor: SqlQueryExecutor = SqlServerQueryExecutor()
+    ) -> None:
+        Repository.__init__(
+            self,
+            sql_query_type=sql_query_type,
+            query_executor=query_executor,
+        )
 
 
 class SqliteRepository(Repository):
