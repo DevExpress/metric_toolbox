@@ -44,10 +44,9 @@ class ConnectionParams:
 
 
 class SqlServerConnection(Connection):
-    engine = _get_or_create_engine()
 
     def _get_or_create_engine(self) -> DbEngine:
-        return SqlServerConnection.engine
+        return _get_or_create_engine()
 
     def dispose(self, **kwargs):
-        SqlServerConnection.engine.dispose(close=True)
+        _get_or_create_engine().dispose(close=True)
