@@ -39,8 +39,8 @@ if os.environ.get('PRODUCTION', None):
     )
 
     @event.listens_for(_engine, 'reset')
-    def reset_mssql(dbapi_connection, connection_record, reset_state):
-        if not reset_state.terminate_only:
+    def reset_mssql(dbapi_connection, connection_record=None, reset_state = None):
+        if not reset_state or not reset_state.terminate_only:
             dbapi_connection.execute('{call sys.sp_reset_connection}')
         dbapi_connection.rollback()
 
