@@ -26,7 +26,9 @@ class JsonSqlServerReadQueryExecutor(SqlServerQueryExecutor):
         kwargs: Optional[Dict[str, Any]] = None,
     ) -> str:
         res_raw = connection.execute(
-            sql_query.get_query() + '\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES'
+            sql_query.get_query(
+                extender='\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES'
+            )
         )
         res_json = ''.join(row[0] for row in res_raw.fetchall())
         return res_json

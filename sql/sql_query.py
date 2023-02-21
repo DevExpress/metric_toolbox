@@ -17,7 +17,7 @@ class SqlQuery:
         self.format_params = format_params
         self.__cached_query = None
 
-    def get_query(self) -> str:
+    def get_query(self, extender: str = None) -> str:
         if self.__cached_query is None:
             raw_query = self._read_query_from_file()
             self._ensure_must_have_keys(raw_query)
@@ -38,8 +38,8 @@ class SqlQuery:
 
 class SqlAlchemyQuery(SqlQuery):
 
-    def get_query(self) -> str:
-        return text(SqlQuery.get_query(self))
+    def get_query(self, extender: str = '') -> str:
+        return text(SqlQuery.get_query(self) + extender)
 
 
 class InvalidQueryKeyException(Exception):
