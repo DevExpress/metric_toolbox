@@ -1,5 +1,6 @@
-from typing import Iterable, Type, Union, Dict
+from typing import Union, Dict
 import toolbox.sql.columns_validator as columns_validator
+from toolbox.sql.repository_queries import RepositoryQueries
 from pandas import DataFrame
 from toolbox.sql.query_executors.sql_server_query_executor import (
     JsonSqlServerReadQueryExecutor,
@@ -7,7 +8,6 @@ from toolbox.sql.query_executors.sql_server_query_executor import (
     SqlQueryExecutor,
 )
 from toolbox.sql.query_executors.sqlite_query_executor import SQLiteQueryExecutor
-from toolbox.sql.sql_query import SqlQuery, SqlAlchemyQuery
 from toolbox.utils.converters import DF_to_JSON
 
 
@@ -19,32 +19,26 @@ class Repository:
 
     def __init__(
         self,
-        sql_query_type: Type[SqlQuery] = SqlQuery,
+        queries: RepositoryQueries = RepositoryQueries(),
         query_executor: SqlQueryExecutor = None,
     ) -> None:
-        self.sql_query_type = sql_query_type
+        self.queries = queries
         self.query_executor = query_executor or SqlServerQueryExecutor()
 
     @classmethod
     def create(cls):
         return cls()
 
-    def execute_query(self, **kwargs) -> Union[DataFrame, str, None]:
-        query = self.sql_query_type(
-            query_file_path=self.get_main_query_path(kwargs),
-            format_params=self.get_main_query_format_params(kwargs),
-        )
-        return self.query_executor.execute_many(
-            prep_queries=self.get_prep_queries(kwargs),
-            main_query=query,
-        )
-
     # yapf: disable
     def get_data(self, **kwargs) -> Union[Dict[str, DataFrame], DataFrame, str]:
-        query_result: DataFrame = self.execute_query(**kwargs)
-        self.validate_query_result(
-            query_result=query_result,
-            must_have_columns=self.get_must_have_columns(kwargs),
+        query_result: DataFrame = self.query_executor.execute_many(
+            prep_queries=self.queries.get_prep_queries(**kwargs),
+            main_query=self.queries.get_main_query(**kwargs),
+        )
+
+        columns_validator.ensure_must_have_columns(
+            df=query_result,
+            must_have_columns=self.queries.get_must_have_columns(**kwargs),
         )
         return query_result.reset_index(drop=True)
     # yapf: enable
@@ -53,49 +47,29 @@ class Repository:
         return DF_to_JSON.convert(self.get_data(**kwargs))
 
     def update_data(self, **kwargs) -> None:
-        return self.execute_query(**kwargs)
-
-    def validate_values(self, **kwargs) -> str:
-        raise NotImplementedError()
-
-    def validate_query_result(
-        self,
-        query_result: DataFrame,
-        must_have_columns: Iterable[str],
-    ):
-        columns_validator.ensure_must_have_columns(
-            df=query_result,
-            must_have_columns=must_have_columns,
+        return self.query_executor.execute_many(
+            prep_queries=(
+                *self.queries.get_prep_queries(**kwargs),
+                self.queries.get_main_query(**kwargs),
+            )
         )
 
-    def get_main_query_path(self, kwargs: Dict) -> str:
-        return kwargs['query_file_path']
-
-    def get_main_query_format_params(self, kwargs: Dict) -> Dict[str, str]:
-        return kwargs['query_format_params']
-
-    def get_must_have_columns(self, kwargs: Dict) -> Iterable[str]:
-        return kwargs['must_have_columns']
-
-    def get_prep_queries(self, kwargs: Dict) -> Iterable[SqlQuery]:
-        return tuple()
+    def validate_data(self, **kwargs) -> str:
+        return self.get_data_json(**kwargs)
 
 
 class JSONBasedRepository(Repository):
 
     def __init__(
         self,
-        sql_query_type: Type[SqlQuery] = SqlQuery,
+        queries: RepositoryQueries,
         query_executor: SqlQueryExecutor = JsonSqlServerReadQueryExecutor(),
     ) -> None:
         Repository.__init__(
             self,
-            sql_query_type=sql_query_type,
+            queries=queries,
             query_executor=query_executor,
         )
-
-    def get_data(self, **kwargs) -> str:
-        return self.execute_query(**kwargs)
 
     def get_data_json(self, **kwargs) -> str:
         return self.get_data(**kwargs)
@@ -105,12 +79,12 @@ class SqlServerRepository(Repository):
 
     def __init__(
         self,
-        sql_query_type: Type[SqlQuery] = SqlAlchemyQuery,
+        queries: RepositoryQueries,
         query_executor: SqlQueryExecutor = SqlServerQueryExecutor()
     ) -> None:
         Repository.__init__(
             self,
-            sql_query_type=sql_query_type,
+            queries=queries,
             query_executor=query_executor,
         )
 
@@ -119,11 +93,11 @@ class SqliteRepository(Repository):
 
     def __init__(
         self,
-        sql_query_type: Type[SqlQuery] = SqlQuery,
+        queries: RepositoryQueries,
         query_executor: SqlQueryExecutor = SQLiteQueryExecutor(),
     ) -> None:
         Repository.__init__(
             self,
-            sql_query_type=sql_query_type,
+            queries=queries,
             query_executor=query_executor,
         )
