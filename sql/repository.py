@@ -31,20 +31,25 @@ class Repository:
 
     # yapf: disable
     def get_data(self, **kwargs) -> Union[Dict[str, DataFrame], DataFrame, str]:
-        query_result: DataFrame = self.query_executor.execute_many(
+        query_result= self.query_executor.execute_many(
             prep_queries=self.queries.get_prep_queries(**kwargs),
             main_query=self.queries.get_main_query(**kwargs),
         )
 
-        columns_validator.ensure_must_have_columns(
-            df=query_result,
-            must_have_columns=self.queries.get_must_have_columns(**kwargs),
-        )
-        return query_result.reset_index(drop=True)
+        if isinstance(query_result, DataFrame):
+            columns_validator.ensure_must_have_columns(
+                df=query_result,
+                must_have_columns=self.queries.get_must_have_columns(**kwargs),
+            )
+            return query_result.reset_index(drop=True)
+        return query_result
     # yapf: enable
 
     def get_data_json(self, **kwargs) -> str:
-        return DF_to_JSON.convert(self.get_data(**kwargs))
+        query_result = self.get_data(**kwargs)
+        if isinstance(query_result, DataFrame):
+            return DF_to_JSON.convert()
+        return query_result
 
     def update_data(self, **kwargs) -> None:
         return self.query_executor.execute_many(
@@ -70,9 +75,6 @@ class JSONBasedRepository(Repository):
             queries=queries,
             query_executor=query_executor,
         )
-
-    def get_data_json(self, **kwargs) -> str:
-        return self.get_data(**kwargs)
 
 
 class SqlServerRepository(Repository):
