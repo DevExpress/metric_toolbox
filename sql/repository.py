@@ -48,7 +48,7 @@ class Repository:
     def get_data_json(self, **kwargs) -> str:
         query_result = self.get_data(**kwargs)
         if isinstance(query_result, DataFrame):
-            return DF_to_JSON.convert()
+            return DF_to_JSON.convert(df = query_result)
         return query_result
 
     def update_data(self, **kwargs) -> None:

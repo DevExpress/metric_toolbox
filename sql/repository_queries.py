@@ -8,7 +8,7 @@ class RepositoryQueries:
         self,
         main_query_path: str = None,
         main_query_format_params: Dict[str, str] = {},
-        must_have_columns: Iterable[str] = None,
+        must_have_columns: Iterable[str] = [],
         main_queries: Dict[str, SqlQuery] = {},
         prep_queries: Iterable[SqlQuery] = tuple(),
         sql_query_type: Type[SqlQuery] = SqlQuery,
