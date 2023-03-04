@@ -95,7 +95,7 @@ class SqliteRepository(Repository):
 
     def __init__(
         self,
-        queries: RepositoryQueries,
+        queries: RepositoryQueries = RepositoryQueries(),
         query_executor: SqlQueryExecutor = SQLiteQueryExecutor(),
     ) -> None:
         Repository.__init__(
