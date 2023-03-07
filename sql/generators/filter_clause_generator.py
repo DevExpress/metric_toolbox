@@ -1,117 +1,87 @@
-from typing import Callable, Any, Iterable
+from typing import Callable, Any, Iterable, Optional
 
 
-class SqlFilterClauseGenerator:
-    # yapf: disable
-    def generate_in_filter(
-        self,
-        col: str,
-        values: Iterable,
+def include_filter(ignore_values: bool = False):
+
+    def include_filter(base_filter: Callable[..., str]) -> Callable[..., str]:
+
+        def include_filter_inner(
+            filter_prefix: str,
+            col: str,
+            values: Optional[Iterable] = None,
+            values_converter: Optional[Callable[[Any], str]] = None,
+        ):
+            if values or ignore_values:
+                filter_prefix = _try_add_space(filter_prefix)
+                return filter_prefix + base_filter(**locals())
+            return ''
+
+        return include_filter_inner
+
+    return include_filter
+
+
+def exclude_filter(base_filter: Callable[..., str]) -> Callable[..., str]:
+
+    def exclude_filter_inner(
         filter_prefix: str,
-        values_converter: Callable[[Any], str],
-    ) -> str:
-
-        def filter_func():
-            filter_values = ','.join([values_converter(val) for val in values])
-            return f'{col} IN (' + filter_values + ')'
-
-        return self._generate_filter(
-            values=values,
-            filter_prefix=filter_prefix,
-            get_filter=filter_func,
-        )
-
-    def generate_not_in_filter(
-        self,
         col: str,
-        values: Iterable,
-        filter_prefix: str,
-        values_converter: Callable[[Any], str],
-    ) -> str:
-
-        def filter_func():
-            filter_values = ','.join([values_converter(val) for val in values])
-            return f'{col} NOT IN (' + filter_values + ')'
-
-        return self._generate_exclude_fitler(
-            col=col,
-            values=values,
-            filter_prefix=filter_prefix,
-            get_filter=filter_func,
-        )
-
-    def generate_like_filter(
-        self,
-        col: str,
-        values: Iterable,
-        filter_prefix: str,
+        values: Optional[Iterable] = None,
+        values_converter: Optional[Callable[[Any], str]] = None,
     ):
-
-        def filter_func():
-            filter = ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
-            return f'({filter})'
-
-        return self._generate_filter(
-            values=values,
-            filter_prefix=filter_prefix,
-            get_filter=filter_func,
-        )
-
-    def generate_not_like_filter(
-        self,
-        col: str,
-        values: Iterable,
-        filter_prefix: str,
-    ):
-
-        def filter_func():
-            filter = ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
-            return f'NOT ({filter})'
-
-        return self._generate_exclude_fitler(
-            col=col,
-            values=values,
-            filter_prefix=filter_prefix,
-            get_filter=filter_func,
-        )
-# yapf: enable
-
-    def generate_is_not_null_filter(
-        self,
-        filter_prefix: str,
-        col: str,
-    ) -> str:
-        return filter_prefix + f' {col} IS NOT NULL'
-
-    def _generate_exclude_fitler(
-        self,
-        col: str,
-        values: Iterable,
-        filter_prefix: str,
-        get_filter: Callable[[], str],
-    ) -> str:
         is_null_fitler = f'{col} IS NULL'
-        values_filter = self._generate_filter(
-            values=values,
-            filter_prefix='',
-            get_filter=get_filter,
-        )
-        filter_prefix = self.try_add_space(filter_prefix)
-        if values_filter:
-            values_filter = ' OR ' + values_filter
-            return filter_prefix + '(' + is_null_fitler + values_filter + ')'
+        filter_prefix = _try_add_space(filter_prefix)
+        if values:
+            return f'{filter_prefix}({is_null_fitler} OR {base_filter(**locals())})'
         return filter_prefix + is_null_fitler
 
-    def _generate_filter(
-        self,
-        values: Iterable,
-        filter_prefix: str,
-        get_filter: Callable[[], str],
-    ) -> str:
-        filter_prefix = self.try_add_space(filter_prefix)
-        return (filter_prefix + get_filter()) if values else ''
+    return exclude_filter_inner
 
-    def try_add_space(self, filter):
-        if filter:
-            return filter + ' '
-        return filter
+
+def _try_add_space(prefix):
+    if prefix:
+        return prefix + ' '
+    return prefix
+
+
+def in_values(values: Iterable, values_converter: Callable[[Any], str]):
+    return ','.join([values_converter(val) for val in values])
+
+
+def like(col: str, values: Iterable):
+    return ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
+
+
+@include_filter()
+def generate_in_filter(
+    col: str,
+    values: Iterable,
+    values_converter: Callable[[Any], str],
+    **_,
+) -> str:
+    return f'{col} IN ({in_values(values, values_converter)})'
+
+
+@exclude_filter
+def generate_not_in_filter(
+    col: str,
+    values: Iterable,
+    values_converter: Callable[[Any], str],
+    **_,
+) -> str:
+    return f'{col} NOT IN ({in_values(values, values_converter)})'
+
+
+@include_filter()
+def generate_like_filter(col: str, values: Iterable, **_):
+    return f'({like(col, values)})'
+
+
+@exclude_filter
+def generate_not_like_filter(col: str, values: Iterable, **_):
+    return f'NOT ({like(col, values)})'
+
+
+@include_filter(ignore_values=True)
+def generate_is_not_null_filter(col: str, **_) -> str:
+    return f'{col} IS NOT NULL'

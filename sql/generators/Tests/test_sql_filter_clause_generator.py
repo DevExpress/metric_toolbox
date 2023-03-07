@@ -1,7 +1,7 @@
 import pytest
 from typing import List
 from typing import Callable, Any
-from toolbox.sql.generators.filter_clause_generator import SqlFilterClauseGenerator
+import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerator
 
 
 @pytest.mark.parametrize(
@@ -50,7 +50,7 @@ def test_generate_in_filter(
     converter: Callable[[Any], str],
     output: str,
 ):
-    assert SqlFilterClauseGenerator().generate_in_filter(
+    assert SqlFilterClauseGenerator.generate_in_filter(
         col=col,
         values=values,
         filter_prefix=prefix,
@@ -104,7 +104,7 @@ def test_generate_not_in_filter(
     converter: Callable[[Any], str],
     output: str,
 ):
-    assert SqlFilterClauseGenerator().generate_not_in_filter(
+    assert SqlFilterClauseGenerator.generate_not_in_filter(
         col=col,
         values=values,
         filter_prefix=prefix,
@@ -140,7 +140,7 @@ def test_generate_like_filter(
     prefix: str,
     output: str,
 ):
-    assert SqlFilterClauseGenerator().generate_like_filter(
+    assert SqlFilterClauseGenerator.generate_like_filter(
         col=col,
         values=values,
         filter_prefix=prefix,
@@ -175,7 +175,7 @@ def test_generate_not_like_filter(
     prefix: str,
     output: str,
 ):
-    assert SqlFilterClauseGenerator().generate_not_like_filter(
+    assert SqlFilterClauseGenerator.generate_not_like_filter(
         col=col,
         values=values,
         filter_prefix=prefix,
@@ -183,7 +183,7 @@ def test_generate_not_like_filter(
 
 
 def test_generate_is_not_null_filter():
-    assert SqlFilterClauseGenerator().generate_is_not_null_filter(
+    assert SqlFilterClauseGenerator.generate_is_not_null_filter(
         col='col',
         filter_prefix='WHERE',
     ) == 'WHERE col IS NOT NULL'
