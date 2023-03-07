@@ -1,7 +1,7 @@
 from typing import Callable, Any, Iterable, Optional
 
 
-def include(ignore_values: bool = False):
+def include_filter(ignore_values: bool = False):
 
     def include_filter(base_filter: Callable[..., str]) -> Callable[..., str]:
 
@@ -21,7 +21,7 @@ def include(ignore_values: bool = False):
     return include_filter
 
 
-def exclude(base_filter: Callable[..., str]) -> Callable[..., str]:
+def exclude_filter(base_filter: Callable[..., str]) -> Callable[..., str]:
 
     def exclude_filter_inner(
         filter_prefix: str,
@@ -52,7 +52,7 @@ def like(col: str, values: Iterable):
     return ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
 
 
-@include()
+@include_filter()
 def generate_in_filter(
     col: str,
     values: Iterable,
@@ -62,7 +62,7 @@ def generate_in_filter(
     return f'{col} IN ({in_values(values, values_converter)})'
 
 
-@exclude
+@exclude_filter
 def generate_not_in_filter(
     col: str,
     values: Iterable,
@@ -72,16 +72,16 @@ def generate_not_in_filter(
     return f'{col} NOT IN ({in_values(values, values_converter)})'
 
 
-@include()
+@include_filter()
 def generate_like_filter(col: str, values: Iterable, **_):
     return f'({like(col, values)})'
 
 
-@exclude
+@exclude_filter
 def generate_not_like_filter(col: str, values: Iterable, **_):
     return f'NOT ({like(col, values)})'
 
 
-@include(ignore_values=True)
+@include_filter(ignore_values=True)
 def generate_is_not_null_filter(col: str, **_) -> str:
     return f'{col} IS NOT NULL'
