@@ -23,11 +23,12 @@ class FuncProxy:
 
 class BoundFuncWrapper(FuncProxy):
 
-    def __init__(self, func, instance, wrapper, is_instance_method):
+    def __init__(self, func, instance, wrapper, is_instance_method, parent):
         FuncProxy.__init__(self, func)
         self.instance = instance
         self.wrapper = wrapper
         self.is_instance_method = is_instance_method
+        self.parent = parent
 
     def __call__(self, *args, **kwargs):
         if self.is_instance_method:
@@ -38,6 +39,18 @@ class BoundFuncWrapper(FuncProxy):
             return self.wrapper(self.func, self.instance, *args, **kwargs)
         instance = getattr(self.func, '__self__', None)
         return self.wrapper(self.func, instance, *args, **kwargs)
+
+    def __get__(self, instance, owner):
+        if self.instance is None and self.is_instance_method:
+            descriptor = self.parent.func.__get__(instance, owner)
+            return BoundFuncWrapper(
+                descriptor,
+                instance,
+                self.wrapper,
+                self.is_instance_method,
+                self.parent,
+            )
+        return self
 
 
 class FuncWrapper(FuncProxy):
@@ -64,7 +77,11 @@ class FuncWrapper(FuncProxy):
         """
         func = self.func.__get__(instance, owner)
         return BoundFuncWrapper(
-            func, instance, self.wrapper, self.is_instance_method
+            func,
+            instance,
+            self.wrapper,
+            self.is_instance_method,
+            self,
         )
 
     def __call__(self, *args, **kwargs):
