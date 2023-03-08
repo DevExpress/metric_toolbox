@@ -7,6 +7,7 @@ def include_filter(ignore_values: bool = False):
     @decorator
     def include_filter_inner(
         base_filter: Callable[..., str],
+        instance: Any,
         filter_prefix: str,
         col: str,
         values: Optional[Iterable] = None,
@@ -23,6 +24,7 @@ def include_filter(ignore_values: bool = False):
 @decorator
 def exclude_filter(
     base_filter: Callable[..., str],
+    instance: Any,
     filter_prefix: str,
     col: str,
     values: Optional[Iterable] = None,

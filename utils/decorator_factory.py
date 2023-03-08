@@ -23,12 +23,13 @@ class FuncProxy:
 
 class BoundFuncWrapper(FuncProxy):
 
-    def __init__(self, func, wrapper):
+    def __init__(self, func, instance, wrapper):
         FuncProxy.__init__(self, func)
+        self.instance = instance
         self.wrapper = wrapper
 
     def __call__(self, *args, **kwargs):
-        return self.wrapper(self.func, *args, **kwargs)
+        return self.wrapper(self.func, self.instance, *args, **kwargs)
 
 
 class FuncWrapper(FuncProxy):
@@ -51,13 +52,13 @@ class FuncWrapper(FuncProxy):
         Thus wrappers for class methods need also to be descriptors.
         """
         func = self.func.__get__(instance, owner)
-        return BoundFuncWrapper(func, self.wrapper)
+        return BoundFuncWrapper(func, instance, self.wrapper)
 
     def __call__(self, *args, **kwargs):
         """
         If the wrapper is applied to a normal function, the __call__() method of the wrapper is used.
         """
-        return self.wrapper(self.func, *args, **kwargs)
+        return self.wrapper(self.func, None, *args, **kwargs)
 
 
 def decorator(wrapper):
