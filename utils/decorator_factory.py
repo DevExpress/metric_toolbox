@@ -23,13 +23,21 @@ class FuncProxy:
 
 class BoundFuncWrapper(FuncProxy):
 
-    def __init__(self, func, instance, wrapper):
+    def __init__(self, func, instance, wrapper, is_instance_method):
         FuncProxy.__init__(self, func)
         self.instance = instance
         self.wrapper = wrapper
+        self.is_instance_method = is_instance_method
 
     def __call__(self, *args, **kwargs):
-        return self.wrapper(self.func, self.instance, *args, **kwargs)
+        if self.is_instance_method:
+            if self.instance is None:
+                instance, *args = args
+                func = functools.partial(self.func, instance)
+                return self.wrapper(func, instance, *args, **kwargs)
+            return self.wrapper(self.func, self.instance, *args, **kwargs)
+        instance = getattr(self.func, '__self__', None)
+        return self.wrapper(self.func, instance, *args, **kwargs)
 
 
 class FuncWrapper(FuncProxy):
@@ -37,6 +45,9 @@ class FuncWrapper(FuncProxy):
     def __init__(self, func, wrapper):
         FuncProxy.__init__(self, func)
         self.wrapper = wrapper
+        self.is_instance_method = not (
+            isinstance(func, classmethod) or isinstance(func, staticmethod)
+        )
 
     def __get__(self, instance, owner):
         """
@@ -52,7 +63,9 @@ class FuncWrapper(FuncProxy):
         Thus wrappers for class methods need also to be descriptors.
         """
         func = self.func.__get__(instance, owner)
-        return BoundFuncWrapper(func, instance, self.wrapper)
+        return BoundFuncWrapper(
+            func, instance, self.wrapper, self.is_instance_method
+        )
 
     def __call__(self, *args, **kwargs):
         """
