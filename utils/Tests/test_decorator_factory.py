@@ -49,7 +49,14 @@ def test_class_method():
         def func(cls, a, b):
             return a, b
 
+        @classmethod
+        @my_wrapper
+        def func1(cls, a, b):
+            return a, b
+
     assert Tmp.func(1, b=2) == (Tmp, (1, 2))
+    assert Tmp.func1(1, b=2) == (Tmp, (1, 2))
+
 
 def test_static_method():
 
@@ -60,4 +67,10 @@ def test_static_method():
         def func(a, b):
             return a, b
 
+        @staticmethod
+        @my_wrapper
+        def func1(a, b):
+            return a, b
+
     assert Tmp.func(1, b=2) == (None, (1, 2))
+    assert Tmp.func1(1, b=2) == (None, (1, 2))
