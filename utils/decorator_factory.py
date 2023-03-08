@@ -48,7 +48,7 @@ class FuncWrapper(FuncProxy):
 
         This method is aimed to solve the problem where the wrapper is not honouring the descriptor protocol
         and performing binding on the wrapped object in the case of a method on a class.
-        Thus wrappers for class method need also to be descriptors.
+        Thus wrappers for class methods need also to be descriptors.
         """
         func = self.func.__get__(instance, owner)
         return BoundFuncWrapper(func, self.wrapper)
