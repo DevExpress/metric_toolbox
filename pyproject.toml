@@ -11,6 +11,7 @@ pydantic = "^1.9.1"
 pyodbc = "^4.0.34"
 python = "^3.8"
 redis = "^4.3.4"
+wrapt = "^1.15.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

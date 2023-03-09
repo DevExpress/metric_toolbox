@@ -1,10 +1,11 @@
-from typing import Callable, Any, Iterable, Optional
-from toolbox.utils.decorator_factory import decorator
+from typing import Callable, Any, Iterable
+from wrapt import decorator
 import functools
 
 
 def include_filter(
-    base_filter: Callable[..., str] = None, *,
+    base_filter: Callable[..., str] = None,
+    *,
     ignore_values: bool = False,
 ):
     if base_filter is None:
@@ -12,34 +13,22 @@ def include_filter(
 
     @decorator
     def include_filter_inner(
-        base_filter: Callable[..., str],
-        instance: Any,
-        filter_prefix: str,
-        col: str,
-        values: Optional[Iterable] = None,
-        values_converter: Optional[Callable[[Any], str]] = None,
+        base_filter: Callable[..., str], instance, args, kwargs
     ):
-        if values or ignore_values:
-            filter_prefix = _try_add_space(filter_prefix)
-            return filter_prefix + base_filter(**locals())
+        if kwargs.get('values', None) or ignore_values:
+            filter_prefix = _try_add_space(kwargs['filter_prefix'])
+            return filter_prefix + base_filter(**kwargs)
         return ''
 
     return include_filter_inner(base_filter)
 
 
 @decorator
-def exclude_filter(
-    base_filter: Callable[..., str],
-    instance: Any,
-    filter_prefix: str,
-    col: str,
-    values: Optional[Iterable] = None,
-    values_converter: Optional[Callable[[Any], str]] = None,
-):
-    isnull_filter = f'{col} IS NULL'
-    filter_prefix = _try_add_space(filter_prefix)
-    if values:
-        return f'{filter_prefix}({isnull_filter} OR {base_filter(**locals())})'
+def exclude_filter(base_filter: Callable[..., str], instance, args, kwargs):
+    isnull_filter = f"{kwargs['col']} IS NULL"
+    filter_prefix = _try_add_space(kwargs['filter_prefix'])
+    if kwargs.get('values', None):
+        return f'{filter_prefix}({isnull_filter} OR {base_filter(**kwargs)})'
     return filter_prefix + isnull_filter
 
 
@@ -51,6 +40,7 @@ def _try_add_space(prefix):
 
 @include_filter
 def generate_in_filter(
+    *,
     col: str,
     values: Iterable,
     values_converter: Callable[[Any], str],
@@ -61,6 +51,7 @@ def generate_in_filter(
 
 @exclude_filter
 def generate_not_in_filter(
+    *,
     col: str,
     values: Iterable,
     values_converter: Callable[[Any], str],
@@ -70,17 +61,17 @@ def generate_not_in_filter(
 
 
 @include_filter
-def generate_like_filter(col: str, values: Iterable, **_):
+def generate_like_filter(*, col: str, values: Iterable, **_):
     return f'({like(col, values)})'
 
 
 @exclude_filter
-def generate_not_like_filter(col: str, values: Iterable, **_):
+def generate_not_like_filter(*, col: str, values: Iterable, **_):
     return f'NOT ({like(col, values)})'
 
 
 @include_filter(ignore_values=True)
-def generate_is_not_null_filter(col: str, **_) -> str:
+def generate_is_not_null_filter(*, col: str, **_) -> str:
     return f'{col} IS NOT NULL'
 
 
