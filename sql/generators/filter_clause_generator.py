@@ -1,8 +1,14 @@
 from typing import Callable, Any, Iterable, Optional
 from toolbox.utils.decorator_factory import decorator
+import functools
 
 
-def include_filter(ignore_values: bool = False):
+def include_filter(
+    base_filter: Callable[..., str] = None, *,
+    ignore_values: bool = False,
+):
+    if base_filter is None:
+        return functools.partial(include_filter, ignore_values=ignore_values)
 
     @decorator
     def include_filter_inner(
@@ -18,7 +24,7 @@ def include_filter(ignore_values: bool = False):
             return filter_prefix + base_filter(**locals())
         return ''
 
-    return include_filter_inner
+    return include_filter_inner(base_filter)
 
 
 @decorator
@@ -43,7 +49,7 @@ def _try_add_space(prefix):
     return prefix
 
 
-@include_filter()
+@include_filter
 def generate_in_filter(
     col: str,
     values: Iterable,
@@ -63,7 +69,7 @@ def generate_not_in_filter(
     return f'{col} NOT IN ({in_values(values, values_converter)})'
 
 
-@include_filter()
+@include_filter
 def generate_like_filter(col: str, values: Iterable, **_):
     return f'({like(col, values)})'
 
