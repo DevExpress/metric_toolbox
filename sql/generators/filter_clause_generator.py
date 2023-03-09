@@ -12,9 +12,7 @@ def include_filter(
         return functools.partial(include_filter, ignore_values=ignore_values)
 
     @decorator
-    def include_filter_inner(
-        base_filter: Callable[..., str], instance, args, kwargs
-    ):
+    def include_filter_inner(base_filter: Callable[..., str], instance, args, kwargs):
         if kwargs.get('values', None) or ignore_values:
             filter_prefix = _try_add_space(kwargs['filter_prefix'])
             return filter_prefix + base_filter(**kwargs)
