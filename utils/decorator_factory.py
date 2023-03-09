@@ -4,6 +4,7 @@ import functools
 class FuncProxy:
     """
     Class which looks and behaves like what it wraps.
+    See: https://github.com/GrahamDumpleton/wrapt/tree/develop/blog#decorators-2014
     """
 
     def __init__(self, func):
@@ -39,18 +40,6 @@ class BoundFuncWrapper(FuncProxy):
             return self.wrapper(self.func, self.instance, *args, **kwargs)
         instance = getattr(self.func, '__self__', None)
         return self.wrapper(self.func, instance, *args, **kwargs)
-
-    def __get__(self, instance, owner):
-        if self.instance is None and self.is_instance_method:
-            descriptor = self.parent.func.__get__(instance, owner)
-            return BoundFuncWrapper(
-                descriptor,
-                instance,
-                self.wrapper,
-                self.is_instance_method,
-                self.parent,
-            )
-        return self
 
 
 class FuncWrapper(FuncProxy):
