@@ -4,7 +4,9 @@ import functools
 class FuncProxy:
     """
     Class which looks and behaves like what it wraps.
-    See: https://github.com/GrahamDumpleton/wrapt/tree/develop/blog#decorators-2014
+    See: 
+        https://github.com/GrahamDumpleton/wrapt/tree/develop/blog#decorators-2014
+        https://wrapt.readthedocs.io/en/latest/
     """
 
     def __init__(self, func):
