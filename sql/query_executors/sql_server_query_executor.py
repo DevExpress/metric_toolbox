@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 from toolbox.sql.sql_query import SqlQuery
-from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor, SqlNonQueryExecutor
+from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor, SqlNonQueryExecutor, with_transaction
 from toolbox.sql.connections.connection import Connection, Transaction
 from toolbox.sql.connections.sql_server_connection import SqlServerConnection
 
@@ -19,13 +19,14 @@ class SqlServerNonQueryExecutor(SqlNonQueryExecutor):
 
 class JsonSqlServerReadQueryExecutor(SqlServerQueryExecutor):
 
+    @with_transaction
     def _execute_query(
         self,
         sql_query: SqlQuery,
-        connection: Transaction,
         kwargs: Optional[Dict[str, Any]] = None,
+        conn: Optional[Transaction] = None,
     ) -> str:
-        res_raw = connection.execute(
+        res_raw = conn.execute(
             sql_query.get_query(
                 extender='\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES'
             )
