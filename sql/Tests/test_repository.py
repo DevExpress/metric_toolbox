@@ -26,8 +26,9 @@ def test_raise_exception_if_data_does_not_contain_required_columns():
             data = {'col_1': [3, 2, 1, 0], 'col_2': ['a', 'b', 'c', 'd']}
             return DataFrame(data=data)
 
+        query_executor = SQLiteQueryExecutor()
         monkeypatch.setattr(
-            SQLiteQueryExecutor,
+            query_executor,
             'execute_many',
             mock_execute,
         )
@@ -35,7 +36,7 @@ def test_raise_exception_if_data_does_not_contain_required_columns():
         with pytest.raises(InvalidDataFormatException) as exec_info:
             Repository(
                 queries=RepositoryQueries(),
-                query_executor=SQLiteQueryExecutor,
+                query_executor=query_executor,
             ).get_data(
                 query_file_path='',
                 query_format_params='query_format_params',

@@ -1,11 +1,9 @@
 import os
+from functools import partial
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
-from toolbox.sql.connections.connection import (
-    DbEngine,
-    Connection,
-)
+from toolbox.sql.connections.connection import Connection
 
 
 class ConnectionParams:
@@ -39,13 +37,10 @@ if os.environ.get('PRODUCTION', None):
     )
 
     @event.listens_for(_engine, 'reset')
-    def reset_mssql(dbapi_connection, connection_record=None, reset_state = None):
+    def reset_mssql(dbapi_connection, connection_record=None, reset_state=None):
         if not reset_state or not reset_state.terminate_only:
             dbapi_connection.execute('{call sys.sp_reset_connection}')
         dbapi_connection.rollback()
 
 
-class SqlServerConnection(Connection):
-
-    def _get_or_create_engine(self) -> DbEngine:
-        return _engine
+SqlServerConnection = partial(Connection, db_engine=_engine)
