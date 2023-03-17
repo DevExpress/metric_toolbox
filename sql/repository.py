@@ -32,24 +32,35 @@ class Repository:
 
     # yapf: disable
     def get_data(self, **kwargs) -> Union[Dict[str, DataFrame], DataFrame, str]:
-        query_result= self.query_executor.execute_many(
-            prep_queries=self.queries.get_prep_queries(**kwargs),
-            main_query=self.queries.get_main_query(**kwargs),
-        )
+        prep_queries = self.queries.get_prep_queries(**kwargs)
 
-        if isinstance(query_result, DataFrame):
-            columns_validator.ensure_must_have_columns(
-                df=query_result,
-                must_have_columns=self.queries.get_must_have_columns(**kwargs),
+        if main_queries := self.queries.get_main_queries(**kwargs):
+            query_result = self.query_executor.execute_many_main_queries(
+                prep_queries=prep_queries,
+                main_queries=main_queries,
             )
-            return query_result.reset_index(drop=True)
+        else:
+            query_result = self.query_executor.execute_many(
+                prep_queries=prep_queries,
+                main_query=self.queries.get_main_query(**kwargs),
+            )
+
+            if isinstance(query_result, DataFrame):
+                columns_validator.ensure_must_have_columns(
+                    df=query_result,
+                    must_have_columns=self.queries.get_must_have_columns(
+                        **kwargs
+                    ),
+                )
+                return query_result.reset_index(drop=True)
+
         return query_result
     # yapf: enable
 
     def get_data_json(self, **kwargs) -> str:
         query_result = self.get_data(**kwargs)
         if isinstance(query_result, DataFrame):
-            return DF_to_JSON.convert(df = query_result)
+            return DF_to_JSON.convert(df=query_result)
         return query_result
 
     def update_data(self, **kwargs) -> None:
@@ -64,6 +75,6 @@ class Repository:
         return self.get_data_json(**kwargs)
 
 
-JSONBasedRepository = partial(Repository, query_executor=SqlServerJsonQueryExecutor())
+SqlServerJSONBasedRepository = partial(Repository, query_executor=SqlServerJsonQueryExecutor())
 SqlServerRepository = partial(Repository, query_executor=SqlServerQueryExecutor())
 SqliteRepository = partial(Repository, query_executor=SQLiteQueryExecutor())
