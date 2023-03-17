@@ -10,9 +10,7 @@ from toolbox.sql.connections.sql_server_connection import SqlServerConnection
 
 
 SqlServerQueryExecutor = partial(SqlQueryExecutor, conn=SqlServerConnection())
-SqlServerNonQueryExecutor = partial(
-    SqlNonQueryExecutor, conn=SqlServerConnection()
-)
+SqlServerNonQueryExecutor = partial(SqlNonQueryExecutor, conn=SqlServerConnection())
 
 
 class SqlServerJsonQueryExecutor(SqlQueryExecutor):
