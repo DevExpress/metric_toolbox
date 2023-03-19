@@ -1,7 +1,7 @@
 import sqlite3
 import os
+from collections.abc import Mapping, Iterable
 from pandas import DataFrame
-from typing import Dict, Iterable
 
 
 _db = None
@@ -21,9 +21,9 @@ class SQLiteDataBase:
 
     def save_tables(
         self,
-        tables: Dict[str, DataFrame],
-        tables_defs: Dict[str, str] = {},
-        create_index_statements: Dict[str, str] = {},
+        tables: Mapping[str, DataFrame],
+        tables_defs: Mapping[str, str] = {},
+        create_index_statements: Mapping[str, str] = {},
     ) -> None:
         with self.begin() as conn:
             if tables is not None:
@@ -48,7 +48,7 @@ class SQLiteDataBase:
     def try_create_table(
         self,
         table: str,
-        tables_defs: Dict[str, str],
+        tables_defs: Mapping[str, str],
         conn: sqlite3.Connection,
     ) -> bool:
         statement = tables_defs.get(table, None)
@@ -60,7 +60,7 @@ class SQLiteDataBase:
     def try_create_index(
         self,
         table: str,
-        create_index_statements: Dict[str, Iterable[str]],
+        create_index_statements: Mapping[str, Iterable[str]],
         conn: sqlite3.Connection,
     ):
         statements = create_index_statements.get(table, None)

@@ -1,4 +1,5 @@
-from typing import Dict, Iterable, Type
+from collections.abc import Iterable, Mapping
+from typing import Type
 from toolbox.sql.sql_query import SqlQuery, SqlAlchemyQuery
 
 
@@ -7,9 +8,9 @@ class RepositoryQueries:
     def __init__(
         self,
         main_query_path: str = None,
-        main_query_format_params: Dict[str, str] = {},
+        main_query_format_params: Mapping[str, str] = {},
         must_have_columns: Iterable[str] = [],
-        main_queries: Dict[str, SqlQuery] = {},
+        main_queries: Mapping[str, SqlQuery] = {},
         prep_queries: Iterable[SqlQuery] = tuple(),
         sql_query_type: Type[SqlQuery] = SqlQuery,
     ) -> None:
@@ -23,23 +24,30 @@ class RepositoryQueries:
     def get_main_query_path(self, **kwargs) -> str:
         return kwargs.get('query_file_path', self.main_query_path)
 
-    def get_main_query_format_params(self, **kwargs) -> Dict[str, str]:
+    def get_main_query_format_params(self, **kwargs) -> Mapping[str, str]:
         return kwargs.get('query_format_params', self.main_query_format_params)
 
     def get_must_have_columns(self, **kwargs) -> Iterable[str]:
         return kwargs.get('must_have_columns', self.must_have_columns)
 
-    def get_main_query(self, **kwargs):
+    def get_main_query(self, **kwargs) -> SqlQuery:
         return self.sql_query_type(
             query_file_path=self.get_main_query_path(**kwargs),
             format_params=self.get_main_query_format_params(**kwargs),
         )
 
-    def get_main_queries(self, **kwargs) -> Dict[str, SqlQuery]:
+    def get_main_queries(self, **kwargs) -> Mapping[str, SqlQuery]:
         return self.main_queries
 
     def get_prep_queries(self, **kwargs) -> Iterable[SqlQuery]:
         return self.prep_queries
+
+    def __call__(self, **kwargs) -> Iterable[SqlQuery]:
+        return (
+            *self.get_prep_queries(**kwargs),
+            self.get_main_query(**kwargs),
+            *self.get_main_queries(**kwargs).values(),
+        )
 
 
 class RepositoryAlchemyQueries(RepositoryQueries):

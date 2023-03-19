@@ -1,4 +1,3 @@
-from typing import Any, Dict, Optional
 from functools import partial
 from toolbox.sql.sql_query import SqlQuery
 from toolbox.sql.query_executors.sql_query_executor import (
@@ -12,7 +11,6 @@ from toolbox.sql.connections.sql_server_connection import SqlServerConnection
 SqlServerQueryExecutor = partial(SqlQueryExecutor, conn=SqlServerConnection())
 SqlServerNonQueryExecutor = partial(SqlNonQueryExecutor, conn=SqlServerConnection())
 
-
 class SqlServerJsonQueryExecutor(SqlQueryExecutor):
 
     def __init__(self) -> None:
@@ -20,12 +18,12 @@ class SqlServerJsonQueryExecutor(SqlQueryExecutor):
 
     def _execute_query(
         self,
-        sql_query: SqlQuery,
-        conn: Transaction,
-        kwargs: Optional[Dict[str, Any]] = None,
+        query: SqlQuery,
+        tran: Transaction,
+        **kwargs,
     ) -> str:
-        res_raw = conn.execute(
-            sql_query.get_query(
+        res_raw = tran.execute(
+            query.get_script(
                 extender='\r\nFOR JSON AUTO, INCLUDE_NULL_VALUES'
             )
         )

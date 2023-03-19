@@ -30,5 +30,5 @@ def test_raise_exception_if_get_query_does_not_contain_required_keys():
             mock_read_query_from_file,
         )
         with pytest.raises(InvalidQueryKeyException) as exec_info:
-            sql_query.get_query()
+            sql_query.get_script()
         assert exec_info.value.message == 'test_query must contain these keys: ds, y, tribe_id, years_ago'

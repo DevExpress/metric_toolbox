@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from typing import Iterable
+from collections.abc import Iterable
 
 
 def ensure_must_have_columns(

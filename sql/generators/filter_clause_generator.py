@@ -1,4 +1,5 @@
-from typing import Callable, Any, Iterable
+from collections.abc import Iterable, Callable
+from typing import Any
 from wrapt import decorator
 import functools
 

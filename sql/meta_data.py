@@ -1,10 +1,10 @@
-from typing import Dict, Iterable
+from collections.abc import Mapping, Iterable
 
 
 class MetaData:
 
     @classmethod
-    def _get_dict(cls) -> Dict[str, str]:
+    def _get_dict(cls) -> Mapping[str, str]:
         res = {}
         while cls:
             res.update(
@@ -18,7 +18,7 @@ class MetaData:
         return res
 
     @classmethod
-    def get_attrs(cls) -> Dict[str, str]:
+    def get_attrs(cls) -> Mapping[str, str]:
         return cls._get_dict()
 
     @classmethod

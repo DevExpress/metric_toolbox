@@ -21,7 +21,7 @@ def test_raise_exception_if_data_does_not_contain_required_columns():
         def mock_execute(
             prep_queries: Iterable[SqlQuery],
             main_query: SqlQuery,
-            main_query_read_kwargs: Dict[str, Any] = {},
+            main_queries: Dict[str, SqlQuery] = {},
         ):
             data = {'col_1': [3, 2, 1, 0], 'col_2': ['a', 'b', 'c', 'd']}
             return DataFrame(data=data)
@@ -29,7 +29,7 @@ def test_raise_exception_if_data_does_not_contain_required_columns():
         query_executor = SQLiteQueryExecutor()
         monkeypatch.setattr(
             query_executor,
-            'execute_many',
+            'execute',
             mock_execute,
         )
         columns = sorted(['asd', 'qwe'])

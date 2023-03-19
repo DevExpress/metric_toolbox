@@ -1,4 +1,14 @@
+from __future__ import annotations
 from typing import Protocol
+
+
+class Connection:
+
+    def __init__(self, db_engine: DbEngine) -> None:
+        self.db_engine = db_engine
+
+    def begin_transaction(self) -> Transaction:
+        return self.db_engine.begin()
 
 
 class Transaction(Protocol):
@@ -12,6 +22,9 @@ class Transaction(Protocol):
     def execute(self, *kargs, **kwargs):
         pass
 
+    def executescript(self, *kargs, **kwargs):
+        pass
+
 
 class DbEngine(Protocol):
 
@@ -19,10 +32,16 @@ class DbEngine(Protocol):
         pass
 
 
-class Connection:
+class Connectable(Protocol):
 
-    def __init__(self, db_engine: DbEngine) -> None:
-        self.db_engine = db_engine
+    def get_connection_object(self) -> Connection:
+        ...
 
-    def begin_transaction(self) -> Transaction:
-        return self.db_engine.begin()
+
+class DbConnectable:
+
+    def __init__(self, conn: Connection) -> None:
+        self.__conn = conn
+
+    def get_connection_object(self) -> Connection:
+        return self.__conn

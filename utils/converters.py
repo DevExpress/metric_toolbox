@@ -1,6 +1,7 @@
 import json
 import numbers
-from typing import Iterable, Any
+from collections.abc import Iterable
+from typing import Any
 from datetime import date
 from pandas import DataFrame, read_json, to_datetime
 
