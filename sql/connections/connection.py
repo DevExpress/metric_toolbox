@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Protocol
+from contextlib import AbstractContextManager
 
 
 class Connection:
@@ -11,13 +12,7 @@ class Connection:
         return self.db_engine.begin()
 
 
-class Transaction(Protocol):
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, *kargs, **kwargs):
-        pass
+class Transaction(AbstractContextManager, Protocol):
 
     def execute(self, *kargs, **kwargs):
         pass

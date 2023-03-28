@@ -16,8 +16,8 @@ from toolbox.sql.connections.connection import (
 def with_transaction(execute_query_func, instance: Connectable, args, kwargs):
     if 'tran' in kwargs:
         return execute_query_func(*args, **kwargs)
-    tran = instance.get_connection_object()
-    with tran.begin_transaction() as transaction:
+    conn = instance.get_connection_object()
+    with conn.begin_transaction() as transaction:
         return execute_query_func(*args, **kwargs, tran=transaction)
 
 
