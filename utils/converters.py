@@ -101,3 +101,7 @@ class DateTimeToSqlString:
     @staticmethod
     def convert(date: date, separator='') -> str:
         return date.strftime(f'%Y{separator}%m{separator}%d')
+
+
+def to_quoted_string(val) -> str:
+    return f"'{val}'"

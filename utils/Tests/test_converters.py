@@ -17,6 +17,7 @@ from toolbox.utils.converters import (
     Objects_to_JSON,
     DateTimeColumnsConverter,
     DateTimeToSqlString,
+    to_quoted_string,
 )
 
 
@@ -116,3 +117,7 @@ def test_DateTimeColumnsConverter(df: DataFrame, result: str, drop_utc: bool):
         drop_utc=drop_utc,
     )
     assert str(df['ds'].dtype) == result
+
+
+def test_to_quoted_string():
+    assert to_quoted_string(1) == "'1'"
