@@ -24,3 +24,8 @@ class MetaData:
     @classmethod
     def get_values(cls) -> Iterable[str]:
         return cls._get_dict().values()
+
+
+class KnotMeta(MetaData):
+    id = 'id'
+    name = 'name'
