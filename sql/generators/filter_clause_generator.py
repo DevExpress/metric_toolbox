@@ -1,41 +1,7 @@
 from collections.abc import Iterable, Callable
 from typing import Any
-from wrapt import decorator
-import functools
 from toolbox.utils.converters import to_quoted_string
-
-
-def include_filter(
-    base_filter: Callable[..., str] = None,
-    *,
-    ignore_values: bool = False,
-):
-    if base_filter is None:
-        return functools.partial(include_filter, ignore_values=ignore_values)
-
-    @decorator
-    def include_filter_inner(base_filter: Callable[..., str], instance, args, kwargs):
-        if kwargs.get('values', None) or ignore_values:
-            filter_prefix = _try_add_space(kwargs['filter_prefix'])
-            return filter_prefix + base_filter(**kwargs)
-        return ''
-
-    return include_filter_inner(base_filter)
-
-
-@decorator
-def exclude_filter(base_filter: Callable[..., str], instance, args, kwargs):
-    isnull_filter = f"{kwargs['col']} IS NULL"
-    filter_prefix = _try_add_space(kwargs['filter_prefix'])
-    if kwargs.get('values', None):
-        return f'{filter_prefix}({isnull_filter} OR {base_filter(**kwargs)})'
-    return filter_prefix + isnull_filter
-
-
-def _try_add_space(prefix):
-    if prefix:
-        return prefix + ' '
-    return prefix
+from toolbox.sql.generators.decorators import include_filter, exclude_filter
 
 
 @include_filter
@@ -43,7 +9,7 @@ def generate_in_filter(
     *,
     col: str,
     values: Iterable,
-    values_converter: Callable[[Any], str]=to_quoted_string,
+    values_converter: Callable[[Any], str] = to_quoted_string,
     **_,
 ) -> str:
     return f'{col} IN ({in_values(values, values_converter)})'
@@ -54,7 +20,7 @@ def generate_not_in_filter(
     *,
     col: str,
     values: Iterable,
-    values_converter: Callable[[Any], str]=to_quoted_string,
+    values_converter: Callable[[Any], str] = to_quoted_string,
     **_,
 ) -> str:
     return f'{col} NOT IN ({in_values(values, values_converter)})'
@@ -75,7 +41,7 @@ def generate_between_filter(
     *,
     col: str,
     values: Iterable,
-    values_converter: Callable[[Any], str]=to_quoted_string,
+    values_converter: Callable[[Any], str] = to_quoted_string,
     **_,
 ):
     return f'{col} {between(values,values_converter)}'
@@ -86,7 +52,7 @@ def generate_not_between_filter(
     *,
     col: str,
     values: Iterable,
-    values_converter: Callable[[Any], str]=to_quoted_string,
+    values_converter: Callable[[Any], str] = to_quoted_string,
     **_,
 ):
     return f'{col} NOT {between(values,values_converter)}'

@@ -3,6 +3,7 @@ from typing import List
 from typing import Callable, Any
 from toolbox.utils.converters import to_quoted_string
 import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerator
+from toolbox.sql.generators import NULL_FILTER_VALUE
 
 
 @pytest.mark.parametrize(
@@ -16,10 +17,10 @@ import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerato
         ),
         (
             'col',
-            ['p1', 'p2'],
+            [NULL_FILTER_VALUE],
             'WHERE',
-            to_quoted_string,
-            "WHERE col IN ('p1','p2')",
+            str,
+            'WHERE col IS NULL',
         ),
         (
             'col',
@@ -30,10 +31,24 @@ import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerato
         ),
         (
             'col',
-            [1, 2],
-            'AND',
-            str,
-            "AND col IN (1,2)",
+            ['p1', NULL_FILTER_VALUE],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NULL OR col IN ('p1'))",
+        ),
+        (
+            'col',
+            ['p1', 'p2'],
+            'WHERE',
+            to_quoted_string,
+            "WHERE col IN ('p1','p2')",
+        ),
+        (
+            'col',
+            ['p1', 'p2', NULL_FILTER_VALUE],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NULL OR col IN ('p1','p2'))",
         ),
         (
             'col',
@@ -41,6 +56,13 @@ import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerato
             'AND',
             str,
             "AND col IN (1)",
+        ),
+        (
+            'col',
+            [1, 2],
+            'AND',
+            str,
+            "AND col IN (1,2)",
         ),
     ]
 )
@@ -70,10 +92,10 @@ def test_generate_in_filter(
         ),
         (
             'col',
-            ['p1', 'p2'],
+            [NULL_FILTER_VALUE],
             'WHERE',
-            to_quoted_string,
-            "WHERE (col IS NULL OR col NOT IN ('p1','p2'))",
+            str,
+            'WHERE col IS NOT NULL',
         ),
         (
             'col',
@@ -81,6 +103,27 @@ def test_generate_in_filter(
             'WHERE',
             to_quoted_string,
             "WHERE (col IS NULL OR col NOT IN ('p1'))",
+        ),
+        (
+            'col',
+            ['p1', NULL_FILTER_VALUE],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NOT NULL AND col NOT IN ('p1'))",
+        ),
+        (
+            'col',
+            ['p1', 'p2'],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NULL OR col NOT IN ('p1','p2'))",
+        ),
+        (
+            'col',
+            ['p1', 'p2', NULL_FILTER_VALUE],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NOT NULL AND col NOT IN ('p1','p2'))",
         ),
         (
             'col',
@@ -123,15 +166,33 @@ def test_generate_not_in_filter(
         ),
         (
             'col',
-            ['p1', 'p2'],
+            [NULL_FILTER_VALUE],
             'WHERE',
-            "WHERE (col LIKE '%p1%' OR col LIKE '%p2%')",
+            'WHERE col IS NULL',
         ),
         (
             'col',
             ['p1'],
             'AND',
             "AND (col LIKE '%p1%')",
+        ),
+        (
+            'col',
+            ['p1', NULL_FILTER_VALUE],
+            'AND',
+            "AND (col IS NULL OR (col LIKE '%p1%'))",
+        ),
+        (
+            'col',
+            ['p1', 'p2'],
+            'WHERE',
+            "WHERE (col LIKE '%p1%' OR col LIKE '%p2%')",
+        ),
+        (
+            'col',
+            ['p1', 'p2', NULL_FILTER_VALUE],
+            'WHERE',
+            "WHERE (col IS NULL OR (col LIKE '%p1%' OR col LIKE '%p2%'))",
         ),
     ]
 )
@@ -158,15 +219,33 @@ def test_generate_like_filter(
         ),
         (
             'col',
-            ['p1', 'p2'],
+            [NULL_FILTER_VALUE],
             'WHERE',
-            "WHERE (col IS NULL OR NOT (col LIKE '%p1%' OR col LIKE '%p2%'))",
+            'WHERE col IS NOT NULL',
         ),
         (
             'col',
             ['p1'],
             'AND',
             "AND (col IS NULL OR NOT (col LIKE '%p1%'))",
+        ),
+        (
+            'col',
+            ['p1', NULL_FILTER_VALUE],
+            'AND',
+            "AND (col IS NOT NULL AND NOT (col LIKE '%p1%'))",
+        ),
+        (
+            'col',
+            ['p1', 'p2'],
+            'WHERE',
+            "WHERE (col IS NULL OR NOT (col LIKE '%p1%' OR col LIKE '%p2%'))",
+        ),
+        (
+            'col',
+            ['p1', 'p2', NULL_FILTER_VALUE],
+            'WHERE',
+            "WHERE (col IS NOT NULL AND NOT (col LIKE '%p1%' OR col LIKE '%p2%'))",
         ),
     ]
 )
@@ -201,10 +280,24 @@ def test_generate_is_not_null_filter():
         ),
         (
             'col',
+            [NULL_FILTER_VALUE],
+            'WHERE',
+            str,
+            'WHERE col IS NULL',
+        ),
+        (
+            'col',
             ['p1', 'p2'],
             'WHERE',
             to_quoted_string,
             "WHERE col BETWEEN 'p1' AND 'p2'",
+        ),
+        (
+            'col',
+            ['p1', 'p2', NULL_FILTER_VALUE],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NULL OR col BETWEEN 'p1' AND 'p2')",
         ),
         (
             'col',
@@ -241,6 +334,13 @@ def test_generate_between_filter(
         ),
         (
             'col',
+            [NULL_FILTER_VALUE],
+            'WHERE',
+            str,
+            'WHERE col IS NOT NULL',
+        ),
+        (
+            'col',
             ['p1', 'p2'],
             'WHERE',
             to_quoted_string,
@@ -252,6 +352,13 @@ def test_generate_between_filter(
             'AND',
             str,
             'AND (col IS NULL OR col NOT BETWEEN 1 AND 2)',
+        ),
+        (
+            'col',
+            [1, 2, NULL_FILTER_VALUE],
+            'AND',
+            str,
+            'AND (col IS NOT NULL AND col NOT BETWEEN 1 AND 2)',
         ),
     ]
 )
