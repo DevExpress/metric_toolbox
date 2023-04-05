@@ -80,9 +80,7 @@ class SqlQueryExecutor(DbConnectable):
         script: str,
         tran: Transaction,
     ):
-        execute = tran.execute
-        if hasattr(tran, 'executescript'):
-            execute = tran.executescript
+        execute = getattr(tran, 'executescript', tran.execute)
         execute(script)
 
 
