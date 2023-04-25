@@ -5,7 +5,7 @@ from collections.abc import Mapping, Iterable, Coroutine
 from typing import Optional
 from wrapt import decorator
 from toolbox.sql_async.protocols import Connection, Connectable, AsyncSqlQuery
-import toolbox.logger as Logger
+#import toolbox.logger as Logger
 
 
 @decorator
@@ -76,7 +76,7 @@ class AsyncSQLiteQueryExecutor(DbConnectable):
         conn: Connection,
     ) -> str:
         q = await query
-        Logger.debug(q)
+        #Logger.debug(q)
         cursor: aiosqlite.Cursor = await conn.execute(q)
         res = await cursor.fetchone()
         return res[0] if res else None
