@@ -9,7 +9,7 @@ import toolbox.logger as Logger
 
 
 @decorator
-async def with_transaction(
+async def with_connection(
     execute_query_func: Coroutine,
     instance: Connectable,
     args: Iterable,
@@ -34,7 +34,7 @@ class DbConnectable:
 
 class AsyncSQLiteQueryExecutor(DbConnectable):
 
-    @with_transaction
+    @with_connection
     async def execute(
         self,
         *,
@@ -56,7 +56,7 @@ class AsyncSQLiteQueryExecutor(DbConnectable):
 
         raise NotImplementedError('main_queries')
 
-    @with_transaction
+    @with_connection
     async def execute_nonquery(
         self,
         *queries: Iterable[AsyncSqlQuery],
@@ -76,7 +76,7 @@ class AsyncSQLiteQueryExecutor(DbConnectable):
         conn: Connection,
     ) -> str:
         q = await query
-        #Logger.debug(q)
+        Logger.debug(q)
         cursor: aiosqlite.Cursor = await conn.execute(q)
         res = await cursor.fetchone()
         return res[0] if res else None
