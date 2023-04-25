@@ -29,3 +29,8 @@ class MetaData:
 class KnotMeta(MetaData):
     id = 'id'
     name = 'name'
+
+
+class ValidationMeta(MetaData):
+    value = 'value'
+    valid = 'valid'
