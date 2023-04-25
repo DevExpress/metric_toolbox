@@ -3,6 +3,7 @@ import aiofiles
 from collections.abc import Mapping, Sequence, Callable
 from toolbox.utils import json_array_of_objects
 
+
 class AsyncSqlQuery:
     """
     Represents an interface to an sql query stored on disc.
@@ -18,7 +19,7 @@ class AsyncSqlQuery:
     ) -> None:
         self._file_path = query_file_path
         self.fields_mapping = fields_mapping
-        self.fields=fields
+        self.fields = fields
         self.format_params = format_params
         self.formatter = formatter
 
@@ -28,9 +29,13 @@ class AsyncSqlQuery:
         return await loop.run_in_executor(None, self.format, raw_query)
 
     def format(self, raw_query: str):
-        base_query = raw_query.format(**{**self.fields_mapping, **self.format_params})
+        base_query = raw_query.format(
+            **{
+                **self.fields_mapping,
+                **self.format_params
+            }
+        )
         return self.formatter(self.fields, base_query)
-
 
     def __await__(self):
         return self.get_script().__await__()
