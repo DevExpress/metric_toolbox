@@ -19,12 +19,13 @@ def include_filter(
         args: Iterable,
         kwargs: dict,
     ):
-        if (values := kwargs.get('values', None)) or ignore_values:
+        values, generate_null_filter = __select_real_values(kwargs)
+        kwargs['values'] = values
+        if values is not None or ignore_values:
             filter_prefix = __try_add_space(kwargs['filter_prefix'])
 
-            if values is not None and NULL_FILTER_VALUE in values:
+            if generate_null_filter:
                 isnull_filter = f"{kwargs['col']} IS NULL"
-                kwargs['values'] = [val for val in values if val != NULL_FILTER_VALUE]
                 return __try_generate_or_filter(
                     kwargs,
                     filter_prefix,
@@ -50,11 +51,12 @@ def exclude_filter(
     isnull_filter = f'{col} IS NULL'
     filter_prefix = __try_add_space(kwargs['filter_prefix'])
 
-    if values := kwargs.get('values', None):
+    values, generate_null_filter = __select_real_values(kwargs)
+    kwargs['values'] = values
+    if values is not None:
 
-        if NULL_FILTER_VALUE in values:
+        if generate_null_filter:
             isnull_filter = f'{col} IS NOT NULL'
-            kwargs['values'] = [val for val in values if val != NULL_FILTER_VALUE]
             return __try_generate_and_filter(
                 kwargs,
                 filter_prefix,
@@ -69,6 +71,13 @@ def exclude_filter(
             base_filter,
         )
     return __generate_filter(filter_prefix, isnull_filter)
+
+
+def __select_real_values(kwargs: dict) -> tuple[Iterable, bool]:
+    values = kwargs.get('values', None)
+    if values:
+        return [val for val in values if val != NULL_FILTER_VALUE], NULL_FILTER_VALUE in values
+    return None, False
 
 
 def __try_add_space(prefix):
@@ -86,7 +95,7 @@ def __try_generate_or_filter(
     filter = isnull_filter
     if kwargs['values']:
         filter = f'({isnull_filter} OR {base_filter_func(**kwargs)})'
-    return __generate_filter(filter_prefix,filter)
+    return __generate_filter(filter_prefix, filter)
 
 
 def __try_generate_and_filter(

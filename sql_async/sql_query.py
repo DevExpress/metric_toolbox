@@ -25,8 +25,7 @@ class AsyncSqlQuery:
 
     async def get_script(self) -> str:
         raw_query = await self._read_query_from_file()
-        loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self.format, raw_query)
+        return await asyncio.to_thread(self.format, raw_query)
 
     def format(self, raw_query: str):
         base_query = raw_query.format(
