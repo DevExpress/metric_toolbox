@@ -2,7 +2,7 @@ import json
 import numbers
 from collections.abc import Iterable
 from typing import Any
-from datetime import date
+from datetime import date, datetime
 from pandas import DataFrame, read_json, to_datetime
 
 
@@ -101,6 +101,13 @@ class DateTimeToSqlString:
     @staticmethod
     def convert(date: date, separator='') -> str:
         return date.strftime(f'%Y{separator}%m{separator}%d')
+
+    @staticmethod
+    def convert_from_utcstring(dt: str, separator='') -> str:
+        return DateTimeToSqlString.convert(
+            date=datetime.strptime(dt, '%Y-%m-%dT%H:%M:%SZ'),
+            separator='-',
+        )
 
 
 def to_quoted_string(val) -> str:
