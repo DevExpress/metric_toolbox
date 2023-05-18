@@ -60,5 +60,5 @@ class Repository:
 # yapf: disable
 SqlServerJSONBasedRepository = partial(Repository, query_executor=SqlServerJsonQueryExecutor())
 SqlServerRepository = partial(Repository, query_executor=SqlServerQueryExecutor())
-SqlServerReadOnlyRepository = partial(Repository, query_executor=SqlServerNonQueryExecutor())
+SqlServerNonQueryRepository = partial(Repository, query_executor=SqlServerNonQueryExecutor())
 SqliteRepository = partial(Repository, query_executor=SQLiteQueryExecutor())

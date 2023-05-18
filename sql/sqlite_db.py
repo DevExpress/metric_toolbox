@@ -2,6 +2,7 @@ import sqlite3
 import os
 from collections.abc import Mapping, Iterable
 from pandas import DataFrame
+from toolbox.sql.crud_queries.protocols import CRUDQuery
 
 
 _db = None
@@ -21,29 +22,58 @@ class SQLiteDataBase:
 
     def save_tables(
         self,
-        tables: Mapping[str, DataFrame],
+        tables: Mapping[str, DataFrame | CRUDQuery],
         tables_defs: Mapping[str, str] = {},
         create_index_statements: Mapping[str, str] = {},
     ) -> None:
         with self.begin() as conn:
             if tables is not None:
-                for k, v in tables.items():
+                for table_name, data in tables.items():
                     table_created_manually = self.try_create_table(
-                        table=k,
+                        table=table_name,
                         tables_defs=tables_defs,
                         conn=conn,
                     )
-                    v.to_sql(
-                        name=k,
-                        con=conn,
-                        if_exists='append' if table_created_manually else 'replace',
-                        index=False,
-                    )
-                    self.try_create_index(
-                        table=k,
-                        create_index_statements=create_index_statements,
+
+                    if table_created_manually:
+                        self.try_create_index(
+                            table=table_name,
+                            create_index_statements=create_index_statements,
+                            conn=conn,
+                        )
+
+                    self.upsert_data(
                         conn=conn,
+                        table_name=table_name,
+                        data=data,
+                        table_created_manually=table_created_manually,
                     )
+
+                    if not table_created_manually:
+                        self.try_create_index(
+                            table=table_name,
+                            create_index_statements=create_index_statements,
+                            conn=conn,
+                        )
+
+    def upsert_data(
+        self,
+        conn: sqlite3.Connection,
+        table_name: str,
+        data: DataFrame | CRUDQuery,
+        table_created_manually: bool,
+    ):
+        match data:
+            case DataFrame():
+                data.to_sql(
+                    name=table_name,
+                    con=conn,
+                    if_exists='append' if table_created_manually else 'replace',
+                    index=False,
+                )
+            case CRUDQuery():
+                conn.executemany(data.get_script(), data.get_parameters())
+                
 
     def try_create_table(
         self,
