@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Protocol
 from contextlib import AbstractContextManager
+from wrapt import decorator
 
 
 class Connection:
@@ -18,6 +19,9 @@ class Transaction(AbstractContextManager, Protocol):
         pass
 
     def executescript(self, *kargs, **kwargs):
+        pass
+
+    def executemany(self, *kargs, **kwargs):
         pass
 
 
@@ -40,3 +44,12 @@ class DbConnectable:
 
     def get_connection_object(self) -> Connection:
         return self.__conn
+
+
+@decorator
+def with_transaction(execute_query_func, instance: Connectable, args, kwargs):
+    if 'tran' in kwargs:
+        return execute_query_func(*args, **kwargs)
+    conn = instance.get_connection_object()
+    with conn.begin_transaction() as transaction:
+        return execute_query_func(*args, **kwargs, tran=transaction)

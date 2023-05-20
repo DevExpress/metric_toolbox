@@ -1,5 +1,4 @@
 from collections.abc import Sequence, Iterable
-from itertools import chain
 
 
 class SqliteUpsertQuery:
@@ -18,6 +17,9 @@ class SqliteUpsertQuery:
         self.confilcting_cols = confilcting_cols
         self._rows = rows
         self._cached_query = None
+
+    def get_table_name(self) -> str:
+        return self._table_name
 
     def get_script(self, extender: str = '') -> str:
         if self._cached_query is None:
