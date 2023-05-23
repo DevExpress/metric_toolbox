@@ -26,9 +26,15 @@ class SaveTableOperation(DbConnectable):
 
     @with_transaction
     def __call__(self, tran: Transaction):
-        self.__try_create_table(tran)
-        self.__try_create_index(tran)
-        self.__update_table(tran)
+        table_created_manually = self.__try_create_table(tran)
+
+        if table_created_manually:
+            self.__try_create_index(tran)
+
+        self.__save_table(tran)
+
+        if not table_created_manually:
+            self.__try_create_index(tran)
 
     def __try_create_table(self, tran: Transaction) -> bool:
         tbl_name = self._query.get_table_name()
@@ -38,10 +44,12 @@ class SaveTableOperation(DbConnectable):
             return True
         return False
 
-    def __update_table(self, tran: Transaction):
+    def __save_table(self, tran: Transaction):
         script = self._query.get_script()
-        params = self._query.get_parameters()
-        tran.executemany(script, params)
+        if params := self._query.get_parameters():
+            tran.executemany(script, params)
+            return
+        tran.executescript(script)
 
     def __try_create_index(self, tran: Transaction):
         tbl_name = self._query.get_table_name()
@@ -67,12 +75,7 @@ class DFToCRUDQueryMapper(NamedTuple):
 
 class SaveTableOperationDF(SaveTableOperation):
 
-    def __call__(self, tran: Transaction):
-        tbl_exists = self.__try_create_table(tran)
-        self.__update_table(tran=tran, tbl_exists=tbl_exists)
-        self.__try_create_index(tran)
-
-    def __update_table(self, tran: Transaction, tbl_exists: bool):
+    def __save_table(self, tran: Transaction, tbl_exists: bool):
         df = self._query.get_script()
         df.to_sql(
             name=self._query.get_table_name(),
