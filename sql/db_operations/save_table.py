@@ -31,7 +31,7 @@ class SaveTableOperation(DbConnectable):
         if table_created_manually:
             self.__try_create_index(tran)
 
-        self.__save_table(tran)
+        self._save_table(tran, table_created_manually)
 
         if not table_created_manually:
             self.__try_create_index(tran)
@@ -44,7 +44,7 @@ class SaveTableOperation(DbConnectable):
             return True
         return False
 
-    def __save_table(self, tran: Transaction):
+    def _save_table(self, tran: Transaction, tbl_exists: bool):
         script = self._query.get_script()
         if params := self._query.get_parameters():
             tran.executemany(script, params)
@@ -75,7 +75,7 @@ class DFToCRUDQueryMapper(NamedTuple):
 
 class SaveTableOperationDF(SaveTableOperation):
 
-    def __save_table(self, tran: Transaction, tbl_exists: bool):
+    def _save_table(self, tran: Transaction, tbl_exists: bool):
         df = self._query.get_script()
         df.to_sql(
             name=self._query.get_table_name(),
