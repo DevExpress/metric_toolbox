@@ -24,7 +24,7 @@ class AsyncSqlQuery:
         self.formatter = formatter
 
     async def get_script(self) -> str:
-        raw_query = await self._read_query_from_file()
+        raw_query = await self._get_raw_query()
         return await asyncio.to_thread(self.format, raw_query)
 
     def format(self, raw_query: str):
@@ -39,6 +39,6 @@ class AsyncSqlQuery:
     def __await__(self):
         return self.get_script().__await__()
 
-    async def _read_query_from_file(self) -> str:
+    async def _get_raw_query(self) -> str:
         async with aiofiles.open(self._file_path, encoding='utf-8') as query:
             return await query.read()
