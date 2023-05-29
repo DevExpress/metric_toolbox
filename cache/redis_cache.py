@@ -8,7 +8,7 @@ class RedisCache:
     def __init__(self, db_name: str = None) -> None:
         self.db_name = db_name
 
-    def ensure_connection(self):
+    def _ensure_connection(self):
         if not hasattr(RedisCache, 'redis_instance'):
             RedisCache.redis_instance = redis.Redis(
                 host=os.environ['REDIS_SERVICE'],
@@ -18,7 +18,7 @@ class RedisCache:
             )
 
     def get(self, key: str) -> str:
-        self.ensure_connection()
+        self._ensure_connection()
         return RedisCache.redis_instance.get(key)
 
     def set(
@@ -27,7 +27,7 @@ class RedisCache:
         value: Any,
         ex: Optional[int],
     ):
-        self.ensure_connection()
+        self._ensure_connection()
         RedisCache.redis_instance.set(
             key,
             value,
