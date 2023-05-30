@@ -20,13 +20,13 @@ class SqliteCreateTableFromTableQuery:
         self,
         source_table_or_subquery: str,
         target_table_name: str,
-        unique_key: QueryField | None,
-        values: Iterable[QueryField] | None = None,
+        unique_key_field: QueryField | None,
+        values_fields: Iterable[QueryField] | None = None,
     ) -> None:
         self._source_table_or_subquery = source_table_or_subquery
         self._target_table_name = target_table_name
-        self._key = unique_key
-        self._values = values
+        self._key = unique_key_field
+        self._values = values_fields
         self._cached_query = None
 
     def get_table_name(self) -> str:
@@ -34,7 +34,7 @@ class SqliteCreateTableFromTableQuery:
 
     def get_script(self, extender: str = '') -> str:
         if self._cached_query is None:
-            key, key_alias, without_rowid = self.__get_keys()
+            key, key_alias, without_rowid = self.__get_key()
             values, values_alias = self.__get_values()
 
             self._cached_query = f'''
@@ -47,7 +47,7 @@ class SqliteCreateTableFromTableQuery:
             '''
         return self._cached_query
 
-    def __get_keys(self):
+    def __get_key(self):
         if not self._key:
             return '', '', ''
         key = f'{self._key} PRIMARY KEY'
