@@ -27,6 +27,9 @@ class ServerModel(BaseModel):
 class FilterNode(ServerModel):
     include: bool
 
+    def __bool__(self):
+        return self.include
+
 
 class FilterParameterNode(FilterNode):
     value: int | str

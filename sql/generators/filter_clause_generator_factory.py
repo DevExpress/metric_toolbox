@@ -19,14 +19,20 @@ class BaseNode(Protocol):
         ...
 
 
+class SupportsBool(Protocol):
+
+    def __bool__(self) -> bool:
+        ...
+
+
 @runtime_checkable
-class FilterParametersNode(BaseNode, Protocol):
+class FilterParametersNode(BaseNode, SupportsBool, Protocol):
     include: bool
     values: Collection
 
 
 @runtime_checkable
-class FilterParameterNode(BaseNode, Protocol):
+class FilterParameterNode(BaseNode, SupportsBool, Protocol):
     include: bool
     value: int
 
@@ -40,17 +46,22 @@ def params_guard(func, instance, args, kwargs):
 
 class SqlFilterClauseFromFilterParametersGeneratorFactory:
 
-    def get_like_filter_generator(params: FilterParametersNode):
-        if params.include:
+    def get_like_filter_generator(positive: SupportsBool, /):
+        if positive:
             return SqlFilterClauseGenerator.generate_like_filter
         return SqlFilterClauseGenerator.generate_not_like_filter
 
-    def get_in_filter_generator(params: FilterParametersNode):
-        if params.include:
+    def get_in_filter_generator(positive: SupportsBool, /):
+        if positive:
             return SqlFilterClauseGenerator.generate_in_filter
         return SqlFilterClauseGenerator.generate_not_in_filter
 
-    def get_between_filter_generator(params: FilterParametersNode):
-        if params.include:
+    def get_between_filter_generator(positive: SupportsBool, /):
+        if positive:
             return SqlFilterClauseGenerator.generate_between_filter
         return SqlFilterClauseGenerator.generate_not_between_filter
+
+    def get_right_halfopen_interval_filter_generator(positive: SupportsBool, /):
+        if positive:
+            return SqlFilterClauseGenerator.generate_right_halfopen_interval_filter
+        return SqlFilterClauseGenerator.generate_exclude_right_halfopen_interval_filter
