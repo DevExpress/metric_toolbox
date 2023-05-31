@@ -94,7 +94,7 @@ def __try_generate_or_filter(
 ):
     filter = isnull_filter
     if kwargs['values']:
-        filter = f'({isnull_filter} OR {base_filter_func(**kwargs)})'
+        filter = f'({isnull_filter} OR {base_filter_func(or_filter=True,**kwargs)})'
     return __generate_filter(filter_prefix, filter)
 
 
@@ -106,7 +106,7 @@ def __try_generate_and_filter(
 ):
     filter = isnull_filter
     if kwargs['values']:
-        filter = f'({isnull_filter} AND {base_filter_func(**kwargs)})'
+        filter = f'({isnull_filter} AND {base_filter_func(or_filter=False, **kwargs)})'
     return __generate_filter(filter_prefix, filter)
 
 

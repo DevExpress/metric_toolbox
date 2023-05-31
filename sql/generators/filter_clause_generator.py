@@ -44,7 +44,7 @@ def generate_between_filter(
     values_converter: Callable[[Any], str] = to_quoted_string,
     **_,
 ):
-    return f'{col} {between(values,values_converter)}'
+    return f'{col} {between(values, values_converter)}'
 
 
 @exclude_filter
@@ -55,7 +55,33 @@ def generate_not_between_filter(
     values_converter: Callable[[Any], str] = to_quoted_string,
     **_,
 ):
-    return f'{col} NOT {between(values,values_converter)}'
+    return f'{col} NOT {between(values, values_converter)}'
+
+
+@include_filter
+def generate_right_halfopen_interval_filter(
+    *,
+    col: str,
+    values: Iterable,
+    values_converter: Callable[[Any], str] = to_quoted_string,
+    **kwargs,
+):
+    start, end, *_ = values
+    filter = f'{values_converter(start)} <= {col} AND {col} < {values_converter(end)}'
+    return wrap_in_quotes_if_orfilter(kwargs, filter)
+
+
+@exclude_filter
+def generate_exclude_right_halfopen_interval_filter(
+    *,
+    col: str,
+    values: Iterable,
+    values_converter: Callable[[Any], str] = to_quoted_string,
+    **kwargs,
+):
+    start, end, *_ = values
+    filter = f'{values_converter(start)} > {col} AND {col} >= {values_converter(end)}'
+    return wrap_in_quotes_if_orfilter(kwargs, filter)
 
 
 @include_filter(ignore_values=True)
@@ -74,3 +100,7 @@ def like(col: str, values: Iterable):
 def between(values: Iterable, values_converter: Callable[[Any], str]):
     start, end, *_ = values
     return f'BETWEEN {values_converter(start)} AND {values_converter(end)}'
+
+
+def wrap_in_quotes_if_orfilter(kwargs: dict, filter: str) -> str:
+    return f'({filter})' if kwargs.get('or_filter', None) else filter

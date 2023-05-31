@@ -375,3 +375,111 @@ def test_generate_not_between_filter(
         filter_prefix=prefix,
         values_converter=converter,
     ) == output
+
+
+@pytest.mark.parametrize(
+    'col, values, prefix, converter, output', [
+        (
+            'col',
+            [],
+            'WHERE',
+            str,
+            '',
+        ),
+        (
+            'col',
+            [NULL_FILTER_VALUE],
+            'WHERE',
+            str,
+            'WHERE col IS NULL',
+        ),
+        (
+            'col',
+            ['p1', 'p2'],
+            'WHERE',
+            to_quoted_string,
+            "WHERE 'p1' <= col AND col < 'p2'",
+        ),
+        (
+            'col',
+            ['p1', 'p2', NULL_FILTER_VALUE],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NULL OR ('p1' <= col AND col < 'p2'))",
+        ),
+        (
+            'col',
+            [1, 2],
+            'AND',
+            str,
+            'AND 1 <= col AND col < 2',
+        ),
+    ]
+)
+def test_generate_right_half_open_interval_filter(
+    col: str,
+    values: List[str],
+    prefix: str,
+    converter: Callable[[Any], str],
+    output: str,
+):
+    assert SqlFilterClauseGenerator.generate_right_halfopen_interval_filter(
+        col=col,
+        values=values,
+        filter_prefix=prefix,
+        values_converter=converter,
+    ) == output
+
+
+@pytest.mark.parametrize(
+    'col, values, prefix, converter, output', [
+        (
+            'col',
+            [],
+            'WHERE',
+            str,
+            'WHERE col IS NULL',
+        ),
+        (
+            'col',
+            [NULL_FILTER_VALUE],
+            'WHERE',
+            str,
+            'WHERE col IS NOT NULL',
+        ),
+        (
+            'col',
+            ['p1', 'p2'],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NULL OR ('p1' > col AND col >= 'p2'))",
+        ),
+        (
+            'col',
+            [1, 2],
+            'AND',
+            str,
+            'AND (col IS NULL OR (1 > col AND col >= 2))',
+        ),
+        (
+            'col',
+            [1, 2, NULL_FILTER_VALUE],
+            'AND',
+            str,
+            'AND (col IS NOT NULL AND 1 > col AND col >= 2)',
+        ),
+    ]
+)
+def test_generate_exclude_right_half_open_interval_filter(
+    col: str,
+    values: List[str],
+    prefix: str,
+    converter: Callable[[Any], str],
+    output: str,
+):
+    assert SqlFilterClauseGenerator.generate_exclude_right_halfopen_interval_filter(
+        col=col,
+        values=values,
+        filter_prefix=prefix,
+        values_converter=converter,
+    ) == output
