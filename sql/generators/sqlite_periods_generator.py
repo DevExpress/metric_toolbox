@@ -22,6 +22,12 @@ async def get_group_by_periods_json():
 '''
 
 
+def generate_group_by_period(format: str, field: str) -> str:
+    if format == '%Y-%W':
+        return f"STRFTIME('%Y-%m-%d', {field}, 'WEEKDAY 0', '-6 DAYS')"
+    return f"STRFTIME('{format}', {field})"
+
+
 async def generate_periods(
     start: str,
     end: str,
