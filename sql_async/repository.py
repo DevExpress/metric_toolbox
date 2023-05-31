@@ -24,9 +24,7 @@ class AsyncRepository:
         )
 
     async def update_data(self, **kwargs) -> None:
-        return await self.query_executor.execute_nonquery(
-            *self.queries(kwargs)
-        )
+        return await self.query_executor.execute_nonquery(*self.queries(kwargs))
 
     async def validate_data(self, **kwargs) -> str:
         return await self.get_data(**kwargs)

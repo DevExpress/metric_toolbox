@@ -42,3 +42,23 @@ class AsyncSqlQuery:
     async def _get_raw_query(self) -> str:
         async with aiofiles.open(self._file_path, encoding='utf-8') as query:
             return await query.read()
+
+
+class GeneralSelectAsyncSqlQuery(AsyncSqlQuery):
+
+    def __init__(
+        self,
+        fields_mapping: Mapping[str, str],
+        fields: Sequence[str],
+        format_params: Mapping[str, str] = {},
+        formatter: Callable[[Sequence[str], str], str] = json_array_of_objects,
+        **kwargs,
+    ) -> None:
+        super().__init__('', fields_mapping, fields, format_params, formatter)
+
+    async def _get_raw_query(self) -> str:
+        return '''
+            SELECT {select}
+            FROM {from}
+            {where_group_limit}
+        '''
