@@ -1,9 +1,12 @@
-from typing import Any
-from pydantic import BaseModel
+from typing import Any, Generic, TypeVar
 from pydantic.fields import FieldInfo
+from pydantic.generics import GenericModel
 
 
-class ServerModel(BaseModel):
+T = TypeVar('T', int, str)
+
+
+class ServerModel(GenericModel):
 
     def get_field_values(self) -> dict[str, Any]:
         return self.__dict__
@@ -31,12 +34,12 @@ class FilterNode(ServerModel):
         return self.include
 
 
-class FilterParameterNode(FilterNode):
-    value: int | str
+class FilterParameterNode(FilterNode, Generic[T]):
+    value: T
 
 
-class FilterParametersNode(FilterNode):
-    values: list[int | str]
+class FilterParametersNode(FilterNode, Generic[T]):
+    values: list[T]
 
 
 class ViewState(ServerModel):
