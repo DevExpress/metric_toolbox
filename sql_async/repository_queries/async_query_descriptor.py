@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from toolbox.sql.meta_data import MetaData
+from toolbox.sql.meta_data import MetaData, MetricAggMeta
 from toolbox.sql_async.repository_queries.query_descriptor import QueryDescriptor
 from toolbox.sql_async.sql_query import AsyncSqlQuery, GeneralSelectAsyncSqlQuery
 
@@ -36,3 +36,9 @@ class GeneralSelectAsyncQueryDescriptor(QueryDescriptor):
             query_type=GeneralSelectAsyncSqlQuery,
             **kwargs,
         )
+
+
+class MetricAsyncQueryDescriptor(GeneralSelectAsyncQueryDescriptor):
+
+    def get_fields_meta(self, kwargs: Mapping) -> MetricAggMeta:
+        return MetricAggMeta

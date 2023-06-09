@@ -1,1 +1,1 @@
-from toolbox.sql.meta_data import MetaData, KnotMeta, ValidationMeta
+from toolbox.sql.meta_data import MetaData, MetricAggMeta, KnotMeta, ValidationMeta

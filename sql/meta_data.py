@@ -34,3 +34,9 @@ class KnotMeta(MetaData):
 class ValidationMeta(MetaData):
     value = 'value'
     valid = 'valid'
+
+
+class MetricAggMeta(MetaData):
+    period = 'period'
+    agg = 'agg'
+    name = 'name'
