@@ -22,7 +22,8 @@ class SqlQueryExecutor(DbConnectable):
         main_queries: Optional[Mapping[str, SqlQuery]] = None,
         tran: Optional[Transaction] = None,
     ) -> DataFrame:
-        self.execute_nonquery(*prep_queries, tran=tran)
+        if prep_queries:
+            self.execute_nonquery(*prep_queries, tran=tran)
 
         if main_query:
             Logger.debug(main_query._file_path)
