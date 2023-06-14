@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterable
-from typing import Never
+from typing import NoReturn
 
 
 class Func:
@@ -74,5 +74,5 @@ class COUNT_DISTINCT(SUM):
     def _func(self, param: str) -> Iterable[str]:
         return [f'COUNT(DISTINCT {param})']
 
-    def over(self, window: str) -> Never:
+    def over(self, window: str) -> NoReturn:
         raise SyntaxError('COUNT(DISTINCT ..) is not analytic func. You cannot use it with OVER.')
