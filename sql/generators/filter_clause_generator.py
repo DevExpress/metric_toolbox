@@ -90,11 +90,11 @@ def generate_is_not_null_filter(*, col: str, **_) -> str:
 
 
 def in_values(values: Iterable, values_converter: Callable[[Any], str]):
-    return ','.join([values_converter(val) for val in values])
+    return ','.join(values_converter(val) for val in values)
 
 
 def like(col: str, values: Iterable):
-    return ' OR '.join([f"{col} LIKE '%{value}%'" for value in values])
+    return ' OR '.join(f"{col} LIKE '%{value}%'" for value in values)
 
 
 def between(values: Iterable, values_converter: Callable[[Any], str]):
