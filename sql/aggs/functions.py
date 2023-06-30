@@ -4,8 +4,19 @@ from typing import NoReturn
 
 class Func:
 
-    def _as_str(self, window: str = '') -> str:
-        pass
+    def __init__(self, param: str, *expressions: 'Func', op: str = '') -> None:
+        self.expressions = expressions or self._func(param)
+        self.op = op
+
+    def _as_str(
+        self,
+        window: str = '',
+        format: Callable[['Func'], str] = lambda x: str(x),
+    ) -> str:
+        res = self.op.join(format(expr) for expr in self.expressions)
+        if len(self.expressions) > 1 and self.op == ' + ':
+            return f'({res})'
+        return res
 
     def __str__(self) -> str:
         return self._as_str()
@@ -26,7 +37,7 @@ class Func:
         return str(self) == str(other)
 
     def over(self, window: str) -> str:
-        return self._as_str(window)
+        return self._as_str(window, lambda x: f'{x} OVER ({window})')
 
 
 class DIV(Func):
@@ -35,7 +46,7 @@ class DIV(Func):
         self.dividee = dividee
         self.divider = divider
 
-    def _as_str(self, window: str = ''):
+    def _as_str(self, window: str = '', *_):
         # yapf: disable
         dividee, divider = self.dividee, self.divider
         if window:
@@ -46,33 +57,22 @@ class DIV(Func):
 
 class SUM(Func):
 
-    def __init__(self, param: str, *expressions: Func, op: str = '') -> None:
-        self.expressions = expressions or self._func(param)
-        self.op = op
+    def _func(self, param: str) -> Iterable[str]:
+        return f'SUM({param})',
+
+
+class COUNT(Func):
 
     def _func(self, param: str) -> Iterable[str]:
-        return [f'SUM({param})']
-
-    def _as_str(self, format: Callable[[Func], str] = lambda x: str(x)):
-        res = self.op.join(format(expr) for expr in self.expressions)
-        if len(self.expressions) > 1 and (' + ' == self.op):
-            return f'({res})'
-        return res
-
-    def over(self, window: str) -> str:
-        return self._as_str(lambda x: f'{x} OVER ({window})')
+        return f'COUNT({param})',
 
 
-class COUNT(SUM):
+class COUNT_DISTINCT(Func):
 
     def _func(self, param: str) -> Iterable[str]:
-        return [f'COUNT({param})']
-
-
-class COUNT_DISTINCT(SUM):
-
-    def _func(self, param: str) -> Iterable[str]:
-        return [f'COUNT(DISTINCT {param})']
+        return f'COUNT(DISTINCT {param})',
 
     def over(self, window: str) -> NoReturn:
-        raise SyntaxError('COUNT(DISTINCT ..) is not analytic func. You cannot use it with OVER.')
+        raise SyntaxError(
+            'COUNT(DISTINCT ..) is not analytic func. You cannot use it with OVER.'
+        )
