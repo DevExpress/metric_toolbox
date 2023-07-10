@@ -11,5 +11,5 @@ def push_state(state: str):
     return state_id
 
 
-def pull_state(state_id: str, ):
+def pull_state(state_id: str):
     return __cache.get(state_id)
