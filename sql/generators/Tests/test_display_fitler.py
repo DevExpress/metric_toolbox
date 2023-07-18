@@ -94,8 +94,8 @@ class MockSqlQueryExecutor(SqlQueryExecutor):
         (
             MockFilterNode(**{
                 'Privacy': FilterParameterNode(include=True, value=0),
-                'Tribes': FilterParametersNode(include=False, values=[2]),
-                'Tents': FilterParametersNode(include=False, values=[2]),
+                'Tribes': FilterParametersNode(include=False, values=['xaml']),
+                'Tents': FilterParametersNode(include=False, values=['win']),
             }),
             [
                 ['Privacy', '=', 0],
@@ -135,7 +135,7 @@ class MockSqlQueryExecutor(SqlQueryExecutor):
         ),
         (     MockFilterNode(**{
                 'Privacy': FilterParameterNode(include=True, value=0),
-                'Tribes': FilterParametersNode(include=False, values=[2, NULL_FILTER_VALUE]),
+                'Tribes': FilterParametersNode(include=False, values=['xaml', NULL_FILTER_VALUE]),
             }),
             [
                 ['Privacy', '=', 0],
@@ -149,7 +149,7 @@ class MockSqlQueryExecutor(SqlQueryExecutor):
         (
             MockFilterNode(**{
                 'Privacy': FilterParameterNode(include=True, value=100),
-                'Tribes': FilterParametersNode(include=True, values=[2, NULL_FILTER_VALUE]),
+                'Tribes': FilterParametersNode(include=True, values=['xaml', NULL_FILTER_VALUE]),
             }),
             [
                 ['Privacy', '=', 100],
