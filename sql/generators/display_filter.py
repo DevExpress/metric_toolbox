@@ -140,7 +140,9 @@ __query_executor = SQLiteQueryExecutor
 
 
 def __get_display_values(
-    field: str, values: list, display_values_store: DisplayValuesStore
+    field: str,
+    values: list,
+    display_values_store: DisplayValuesStore,
 ):
     query_params: QueryParams
     if query_params := display_values_store.get_query_params(field):
