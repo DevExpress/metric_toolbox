@@ -1,4 +1,4 @@
-from collections.abc import Mapping, Iterable
+from collections.abc import Mapping, Iterable, Sequence
 
 
 class MetaData:
@@ -24,6 +24,16 @@ class MetaData:
     @classmethod
     def get_values(cls) -> Iterable[str]:
         return cls._get_dict().values()
+
+    @classmethod
+    def get_key_fields(cls) -> Sequence[str]:
+        return []
+
+    @classmethod
+    def get_conflicting_fields(cls) -> Sequence[str]:
+        key_fields = set(cls.get_key_fields())
+        all_fields = set(cls.get_values())
+        return all_fields - key_fields
 
 
 class KnotMeta(MetaData):
