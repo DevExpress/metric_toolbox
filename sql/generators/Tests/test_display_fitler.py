@@ -52,7 +52,6 @@ class DisplayValuesStore:
 
     @staticmethod
     def get_display_value(field: str, alias: str, value) -> str:
-        print(field, alias)
         if field == 'is_private':
             return value
         return ''
