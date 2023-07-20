@@ -58,6 +58,17 @@ def test_mul(func1: Func, param1: str, func2: Func, param2: str, res: str):
 
 
 @pytest.mark.parametrize(
+    'func, param, expr, res', [
+        (SUM, 'expr1', 100, 'SUM(expr1) * 100'),
+        (COUNT, 'expr1', 'expr2', 'COUNT(expr1) * expr2'),
+        (COUNT_DISTINCT, 'expr1', 'expr2', 'COUNT(DISTINCT expr1) * expr2'),
+    ]
+)
+def test_mul_any(func: Func, param: str, expr, res: str):
+    assert str(func(param) * expr) == res
+
+
+@pytest.mark.parametrize(
     'func1, param1, func2, param2, res', [
         (
             SUM,

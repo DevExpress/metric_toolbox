@@ -27,7 +27,7 @@ class Func:
     def __add__(self, other: 'Func') -> 'Func':
         return SUM('', self, other, op=' + ')
 
-    def __mul__(self, other: 'Func') -> 'Func':
+    def __mul__(self, other) -> 'Func':
         return SUM('', self, other, op=' * ')
 
     def __truediv__(self, other: 'Func') -> 'Func':
