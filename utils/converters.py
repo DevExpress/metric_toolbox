@@ -1,6 +1,7 @@
 import json
 import numbers
-from collections.abc import Iterable
+from collections.abc import Iterable, Callable
+from pathlib import Path
 from typing import Any
 from datetime import date, datetime
 from pandas import DataFrame, read_json, to_datetime
@@ -112,3 +113,10 @@ class DateTimeToSqlString:
 
 def to_quoted_string(val) -> str:
     return f"'{val}'"
+
+
+def file_to_dict(file: Path, title_converter: Callable[[str], str]) -> dict:
+    desc = {}
+    desc['title'] = title_converter(file.stem)
+    desc['content'] = file.read_text()
+    return desc
