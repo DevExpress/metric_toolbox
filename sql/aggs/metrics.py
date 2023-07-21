@@ -4,7 +4,7 @@ from toolbox.sql.aggs.functions import Func
 
 class Metric(NamedTuple):
     name: str
-    displayName: str
+    display_name: str
     group: str
     expression: Func
 
