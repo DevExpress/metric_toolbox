@@ -115,8 +115,15 @@ def to_quoted_string(val) -> str:
     return f"'{val}'"
 
 
-def file_to_dict(file: Path, title_converter: Callable[[str], str] = lambda x: x) -> dict:
-    desc = {}
-    desc['title'] = title_converter(file.stem)
-    desc['content'] = file.read_text()
+def file_to_dict(
+    file: Path,
+    title_converter: Callable[[str], str] = lambda x: x,
+) -> dict:
+    desc = {
+        'title': '',
+        'content': '',
+    }
+    if file.exists():
+        desc['title'] = title_converter(file.stem)
+        desc['content'] = file.read_text()
     return desc
