@@ -1,8 +1,9 @@
 from collections.abc import Sequence
+import itertools
 
 
 def json_array_of_objects(fields: Sequence[str], raw_query: str):
-    cols = ',\r\n\t'.join(f"'{v}', {v}" for v in fields)
+    cols = ',\r\n\t'.join(f"'{v}', {v}" for v in itertools.islice(fields, 0, 63))
     return f"""
 SELECT  JSON_GROUP_ARRAY(JSON_OBJECT(
         {cols}
