@@ -44,6 +44,7 @@ class SqliteCreateTableFromTableQuery:
             INSERT INTO {self._target_table_name}
             SELECT DISTINCT {key_alias}{values_alias}
             FROM {self._source_table_or_subquery}
+            {self.get_not_null_filter()}
             '''
         return self._cached_query
 
@@ -63,6 +64,9 @@ class SqliteCreateTableFromTableQuery:
         values = '\n' + ',\n'.join(str(val) for val in self._values) + '\n'
         values_alias = '\n' + ',\n'.join(val.as_alias() for val in self._values)
         return values, values_alias
+
+    def get_not_null_filter(self):
+        return f'WHERE {self._key.source_name} IS NOT NULL' if self._key else ''
 
     def get_parameters(self) -> None:
         pass
