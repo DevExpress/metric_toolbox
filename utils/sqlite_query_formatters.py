@@ -3,11 +3,15 @@ import itertools
 
 
 def json_array_of_objects(fields: Sequence[str], raw_query: str):
-    cols = ',\r\n\t'.join(f"'{v}', {v}" for v in itertools.islice(fields, 0, 63))
+    SQLITE_MAX_FUNCTION_ARG = 63
+    cols = ',\n\t'.join(f"'{v}', {v}" for v in itertools.islice(fields, 0, SQLITE_MAX_FUNCTION_ARG))
+    json_obj_fn = f'JSON_OBJECT(\n\t{cols})'
+    for v in itertools.islice(fields, SQLITE_MAX_FUNCTION_ARG, None):
+        json_obj_fn = f"JSON_INSERT(\n\t{json_obj_fn},\n\t '$.{v}', {v})"
     return f"""
-SELECT  JSON_GROUP_ARRAY(JSON_OBJECT(
-        {cols}
-        )) AS json_result
+SELECT  JSON_GROUP_ARRAY(
+        {json_obj_fn}
+    ) AS json_result
 FROM (
 {raw_query}
 )"""
