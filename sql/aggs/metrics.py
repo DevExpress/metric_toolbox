@@ -30,6 +30,9 @@ class Metric(NamedTuple):
             return False
         return True
 
+    def get_display_name(self) -> str:
+        return self.display_name or self.name
+
     @classmethod
     def from_metric(
         cls,
