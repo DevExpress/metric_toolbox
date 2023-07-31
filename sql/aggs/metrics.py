@@ -23,6 +23,13 @@ class Metric(NamedTuple):
     def __eq__(self, other: 'Metric') -> bool:
         return str(self) == str(other)
 
+    def supports_over(self):
+        try:
+            self.get_over('')
+        except SyntaxError:
+            return False
+        return True
+
     @classmethod
     def from_metric(
         cls,
