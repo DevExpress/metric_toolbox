@@ -1,5 +1,5 @@
 from toolbox.sql.aggs.metrics import Metric
-from toolbox.sql.aggs.functions import SUM, COUNT, COUNT_DISTINCT
+from toolbox.sql.aggs.functions import SUM, COUNT, COUNT_DISTINCT, AVG
 
 
 NONE_METRIC = Metric('Fake', '', 'Empty', SUM(0))

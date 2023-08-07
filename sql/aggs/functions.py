@@ -76,3 +76,9 @@ class COUNT_DISTINCT(Func):
         raise SyntaxError(
             'COUNT(DISTINCT ..) is not analytic func. You cannot use it with OVER.'
         )
+
+
+class AVG(Func):
+
+    def _func(self, param: str) -> Iterable[str]:
+        return f'AVG({param})',
