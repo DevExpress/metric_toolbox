@@ -26,8 +26,12 @@ class MetaData:
         return cls._get_dict().values()
 
     @classmethod
-    def get_key_fields(cls) -> Sequence[str]:
+    def get_index_fields(cls) -> Sequence[str]:
         return []
+
+    @classmethod
+    def get_key_fields(cls) -> Sequence[str]:
+        return cls.get_index_fields()
 
     @classmethod
     def get_conflicting_fields(cls) -> Sequence[str]:
