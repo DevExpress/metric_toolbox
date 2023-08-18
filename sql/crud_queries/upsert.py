@@ -38,7 +38,7 @@ class SqliteUpsertQuery:
         if confilcting_cols:
             return f'''ON CONFLICT({', '.join(self._key_cols)}) DO UPDATE SET
                 {confilcting_cols}'''
-        return ''
+        return 'ON CONFLICT DO NOTHING'
 
     def get_parameters(self):
         return self._rows
