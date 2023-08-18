@@ -21,7 +21,7 @@ class SqlQueryExecutor(DbConnectable):
         main_query: Optional[SqlQuery] = None,
         main_queries: Optional[Mapping[str, SqlQuery]] = None,
         tran: Optional[Transaction] = None,
-    ) -> DataFrame:
+    ) -> DataFrame | Mapping[str, DataFrame | str]:
         if prep_queries:
             self.execute_nonquery(*prep_queries, tran=tran)
 
@@ -70,7 +70,7 @@ class SqlQueryExecutor(DbConnectable):
         self,
         script: str,
         tran: Transaction,
-    ):
+    ) -> None:
         execute = getattr(tran, 'executescript', tran.execute)
         execute(script)
 
@@ -85,5 +85,5 @@ class SqlNonQueryExecutor(SqlQueryExecutor):
         main_query: Optional[SqlQuery] = None,
         main_queries: Optional[Mapping[str, SqlQuery]] = None,
         tran: Optional[Transaction] = None,
-    ) -> DataFrame:
+    ) -> None:
         self.execute_nonquery(*prep_queries, tran=tran)

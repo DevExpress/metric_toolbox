@@ -31,7 +31,7 @@ class MetaData:
 
     @classmethod
     def get_key_fields(cls) -> Sequence[str]:
-        return cls.get_index_fields()
+        return cls.get_index_fields() or cls.get_values()
 
     @classmethod
     def get_conflicting_fields(cls) -> Sequence[str]:

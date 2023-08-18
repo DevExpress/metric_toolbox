@@ -8,7 +8,7 @@ class CRUDQuery(Protocol):
     def get_table_name(self) -> str:
         pass
 
-    def get_script(self) -> str:
+    def get_script(self, extender: str = '') -> str:
         pass
 
     def get_parameters(self) -> Iterable[Sequence]:

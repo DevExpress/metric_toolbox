@@ -23,16 +23,22 @@ class SqliteUpsertQuery:
 
     def get_script(self, extender: str = '') -> str:
         if self._cached_query is None:
-            confilcting_cols = ',\n'.join(
-                f'{col}=excluded.{col}' for col in self.confilcting_cols
-            )
+
             self._cached_query = f'''
                 INSERT INTO {self._table_name}({', '.join(self._cols)})
                 VALUES({', '.join('?' * len(self._cols))})
-                ON CONFLICT({', '.join(self._key_cols)}) DO UPDATE SET
-                {confilcting_cols}
+                {self.get_on_conflict()}
             '''
         return self._cached_query
+
+    def get_on_conflict(self):
+        confilcting_cols = ',\n'.join(
+            f'{col}=excluded.{col}' for col in self.confilcting_cols
+        )
+        if confilcting_cols:
+            return f'''ON CONFLICT({', '.join(self._key_cols)}) DO UPDATE SET
+                {confilcting_cols}'''
+        return ''
 
     def get_parameters(self):
         return self._rows

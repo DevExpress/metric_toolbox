@@ -4,6 +4,7 @@ from toolbox.sql.sql_query import SqlQuery, SqlAlchemyQuery
 
 
 class RepositoryQueries:
+    """Queries descriptor storing query meta data and params."""
 
     def __init__(
         self,
@@ -31,6 +32,8 @@ class RepositoryQueries:
         return kwargs.get('must_have_columns', self.must_have_columns)
 
     def get_main_query(self, **kwargs) -> SqlQuery:
+        if not self.get_main_query_path(**kwargs):
+            return None
         return self.sql_query_type(
             query_file_path=self.get_main_query_path(**kwargs),
             format_params=self.get_main_query_format_params(**kwargs),
