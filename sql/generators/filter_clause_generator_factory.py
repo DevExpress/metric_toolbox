@@ -65,3 +65,8 @@ class SqlFilterClauseFromFilterParametersGeneratorFactory:
         if positive:
             return SqlFilterClauseGenerator.generate_right_halfopen_interval_filter
         return SqlFilterClauseGenerator.generate_exclude_right_halfopen_interval_filter
+
+    def get_equals_filter_generator(positive: SupportsBool, /):
+        if positive:
+            return SqlFilterClauseGenerator.generate_equals_filter
+        return SqlFilterClauseGenerator.generate_not_equals_filter
