@@ -1,5 +1,4 @@
 import pytest
-from typing import List
 from typing import Callable, Any
 from toolbox.utils.converters import to_quoted_string
 import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerator
@@ -68,7 +67,7 @@ from toolbox.sql.generators import NULL_FILTER_VALUE
 )
 def test_generate_in_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -143,7 +142,7 @@ def test_generate_in_filter(
 )
 def test_generate_not_in_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -198,7 +197,7 @@ def test_generate_not_in_filter(
 )
 def test_generate_like_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     output: str,
 ):
@@ -251,7 +250,7 @@ def test_generate_like_filter(
 )
 def test_generate_not_like_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     output: str,
 ):
@@ -310,7 +309,7 @@ def test_generate_is_not_null_filter():
 )
 def test_generate_between_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -364,7 +363,7 @@ def test_generate_between_filter(
 )
 def test_generate_not_between_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -418,7 +417,7 @@ def test_generate_not_between_filter(
 )
 def test_generate_right_half_open_interval_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -472,7 +471,7 @@ def test_generate_right_half_open_interval_filter(
 )
 def test_generate_exclude_right_half_open_interval_filter(
     col: str,
-    values: List[str],
+    values: list[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
@@ -482,4 +481,84 @@ def test_generate_exclude_right_half_open_interval_filter(
         values=values,
         filter_prefix=prefix,
         values_converter=converter,
+    ) == output
+
+
+@pytest.mark.parametrize(
+    'col, value, prefix, converter, output', (
+        (
+            'col',
+            1,
+            'AND',
+            lambda x: x,
+            'AND col = 1',
+        ),
+        (
+            'col',
+            NULL_FILTER_VALUE,
+            'AND',
+            lambda x: x,
+            'AND col IS NULL',
+        ),
+        (
+            'col',
+            1,
+            'WHERE',
+            to_quoted_string,
+            "WHERE col = '1'",
+        ),
+    )
+)
+def test_equals_filter(
+    col: str,
+    value: Any,
+    prefix: str,
+    converter: Callable[[Any], str],
+    output: str,
+):
+    assert SqlFilterClauseGenerator.generate_equals_filter(
+        col=col,
+        value=value,
+        filter_prefix=prefix,
+        value_converter=converter,
+    ) == output
+
+
+@pytest.mark.parametrize(
+    'col, value, prefix, converter, output', (
+        (
+            'col',
+            1,
+            'AND',
+            lambda x: x,
+            'AND (col IS NULL OR col != 1)',
+        ),
+        (
+            'col',
+            NULL_FILTER_VALUE,
+            'AND',
+            lambda x: x,
+            'AND col IS NOT NULL',
+        ),
+        (
+            'col',
+            1,
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NULL OR col != '1')",
+        ),
+    )
+)
+def test_not_equals_filter(
+    col: str,
+    value: Any,
+    prefix: str,
+    converter: Callable[[Any], str],
+    output: str,
+):
+    assert SqlFilterClauseGenerator.generate_not_equals_filter(
+        col=col,
+        value=value,
+        filter_prefix=prefix,
+        value_converter=converter,
     ) == output

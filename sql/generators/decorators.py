@@ -1,42 +1,38 @@
 from collections.abc import Iterable, Callable
 from wrapt import decorator
-import functools
 from toolbox.sql.generators import NULL_FILTER_VALUE
 
 
-def include_filter(
-    base_filter: Callable[..., str] = None,
-    *,
-    ignore_values: bool = False,
+@decorator
+def not_null_only(
+    base_filter: Callable[..., str],
+    instance,
+    args: Iterable,
+    kwargs: dict,
 ):
-    if base_filter is None:
-        return functools.partial(include_filter, ignore_values=ignore_values)
+    return __generate_filter(
+        kwargs,
+        __generate_is_not_null_filter(kwargs),
+    )
 
-    @decorator
-    def include_filter_inner(
-        base_filter: Callable[..., str],
-        instance,
-        args: Iterable,
-        kwargs: dict,
-    ):
-        values, generate_null_filter = __select_real_values(kwargs)
-        kwargs['values'] = values
-        if values is not None or ignore_values:
-            filter_prefix = __try_add_space(kwargs['filter_prefix'])
 
-            if generate_null_filter:
-                isnull_filter = f"{kwargs['col']} IS NULL"
-                return __try_generate_or_filter(
-                    kwargs,
-                    filter_prefix,
-                    isnull_filter,
-                    base_filter,
-                )
+@decorator
+def include_filter(
+    base_filter: Callable[..., str],
+    instance,
+    args: Iterable,
+    kwargs: dict,
+):
+    values = __get_real_values(kwargs)
+    if values is not None:
+        if __should_generate_null_filter(kwargs):
+            return __generate_is_null_or_base_filter(
+                kwargs,
+                base_filter,
+            )
 
-            return __generate_filter(filter_prefix, base_filter(**kwargs))
-        return ''
-
-    return include_filter_inner(base_filter)
+        return __generate_filter(kwargs, base_filter(**kwargs))
+    return ''
 
 
 @decorator
@@ -46,69 +42,87 @@ def exclude_filter(
     args: Iterable,
     kwargs: dict,
 ):
-    col = kwargs['col']
 
-    isnull_filter = f'{col} IS NULL'
-    filter_prefix = __try_add_space(kwargs['filter_prefix'])
-
-    values, generate_null_filter = __select_real_values(kwargs)
-    kwargs['values'] = values
-    if values is not None:
-
-        if generate_null_filter:
-            isnull_filter = f'{col} IS NOT NULL'
-            return __try_generate_and_filter(
-                kwargs,
-                filter_prefix,
-                isnull_filter,
-                base_filter,
-            )
-
-        return __try_generate_or_filter(
+    if __should_generate_null_filter(kwargs):
+        return __generate_is_not_null_and_base_filter(
             kwargs,
-            filter_prefix,
-            isnull_filter,
             base_filter,
         )
-    return __generate_filter(filter_prefix, isnull_filter)
+
+    return __generate_is_null_or_base_filter(
+        kwargs,
+        base_filter,
+    )
 
 
-def __select_real_values(kwargs: dict) -> tuple[Iterable, bool]:
-    values = kwargs.get('values', None)
+def __generate_is_null_filter(kwargs: dict):
+    return f'{__get_col(kwargs)} IS NULL'
+
+
+def __generate_is_not_null_filter(kwargs: dict):
+    return f'{__get_col(kwargs)} IS NOT NULL'
+
+
+def __get_col(kwargs):
+    return kwargs['col']
+
+
+def __get_real_values(kwargs: dict) -> Iterable | None:
+    if values := __get_values(kwargs):
+        return [val for val in values if val != NULL_FILTER_VALUE]
+    return None
+
+
+def __get_values(kwargs: dict) -> Iterable | None:
+    if values := kwargs.get('values', None):
+        return values
+    if value := kwargs.get('value', None):
+        return (value, )
+    return None
+
+
+def __update_and_get_real_values(kwargs: dict) -> Iterable | None:
+    values = __get_real_values(kwargs)
+    kwargs['values'] = values
+    return values
+
+
+def __should_generate_null_filter(kwargs: dict):
+    if values := __get_values(kwargs):
+        return NULL_FILTER_VALUE in values
+    return None
+
+
+def __generate_is_null_or_base_filter(
+    kwargs: dict,
+    base_filter_func: Callable[..., str],
+):
+    filter = __generate_is_null_filter(kwargs)
+    values = __update_and_get_real_values(kwargs)
     if values:
-        return [val for val in values if val != NULL_FILTER_VALUE], NULL_FILTER_VALUE in values
-    return None, False
+        filter = f'({filter} OR {base_filter_func(or_filter=True, **kwargs)})'
+    return __generate_filter(kwargs, filter)
 
 
-def __try_add_space(prefix):
+def __generate_is_not_null_and_base_filter(
+    kwargs: dict,
+    base_filter_func: Callable[..., str],
+):
+    filter = __generate_is_not_null_filter(kwargs)
+    values = __update_and_get_real_values(kwargs)
+    if values:
+        filter = f'({filter} AND {base_filter_func(or_filter=False, **kwargs)})'
+    return __generate_filter(kwargs, filter)
+
+
+def __generate_filter(kwargs: dict, filter: str | None):
+    if filter:
+        return __get_filter_prefix(kwargs) + filter
+    return ''
+
+
+def __get_filter_prefix(kwargs: dict):
+    prefix = kwargs['filter_prefix']
     if prefix:
         return prefix + ' '
     return prefix
-
-
-def __try_generate_or_filter(
-    kwargs: dict,
-    filter_prefix: str,
-    isnull_filter: str,
-    base_filter_func: Callable[..., str],
-):
-    filter = isnull_filter
-    if kwargs['values']:
-        filter = f'({isnull_filter} OR {base_filter_func(or_filter=True,**kwargs)})'
-    return __generate_filter(filter_prefix, filter)
-
-
-def __try_generate_and_filter(
-    kwargs: dict,
-    filter_prefix: str,
-    isnull_filter: str,
-    base_filter_func: Callable[..., str],
-):
-    filter = isnull_filter
-    if kwargs['values']:
-        filter = f'({isnull_filter} AND {base_filter_func(or_filter=False, **kwargs)})'
-    return __generate_filter(filter_prefix, filter)
-
-
-def __generate_filter(filter_prefix: str, filter: str):
-    return filter_prefix + filter
