@@ -488,10 +488,10 @@ def test_generate_exclude_right_half_open_interval_filter(
     'col, value, prefix, converter, output', (
         (
             'col',
-            1,
+            0,
             'AND',
             lambda x: x,
-            'AND col = 1',
+            'AND col = 0',
         ),
         (
             'col',
@@ -528,10 +528,10 @@ def test_equals_filter(
     'col, value, prefix, converter, output', (
         (
             'col',
-            1,
+            0,
             'AND',
             lambda x: x,
-            'AND (col IS NULL OR col != 1)',
+            'AND (col IS NULL OR col != 0)',
         ),
         (
             'col',

@@ -68,15 +68,15 @@ def __get_col(kwargs):
 
 
 def __get_real_values(kwargs: dict) -> Iterable | None:
-    if values := __get_values(kwargs):
+    if (values := __get_values(kwargs)) is not None:
         return [val for val in values if val != NULL_FILTER_VALUE]
     return None
 
 
 def __get_values(kwargs: dict) -> Iterable | None:
-    if values := kwargs.get('values', None):
+    if (values := kwargs.get('values', None)) and issubclass(type(values), Iterable):
         return values
-    if value := kwargs.get('value', None):
+    if (value := kwargs.get('value', None)) is not None:
         return (value, )
     return None
 
