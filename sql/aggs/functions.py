@@ -1,17 +1,19 @@
 from collections.abc import Callable, Iterable
-from typing import NoReturn
-
+from typing import NoReturn, Self
+from numbers import Number
+from toolbox.sql.aggs.protocols import Expression
 
 class Func:
 
-    def __init__(self, param: str, *expressions: 'Func', op: str = '') -> None:
+    def __init__(self, param: Expression, *expressions: Expression, op: str = '', iif_zero: Number = 0) -> None:
         self.expressions = expressions or self._func(param)
         self.op = op
+        self._iif_zero = iif_zero
 
     def _as_str(
         self,
         window: str = '',
-        format: Callable[['Func'], str] = lambda x: str(x),
+        format: Callable[[Self], str] = lambda x: str(x),
     ) -> str:
         res = self.op.join(format(expr) for expr in self.expressions)
         if len(self.expressions) > 1 and self.op == ' + ':
@@ -24,52 +26,58 @@ class Func:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def __add__(self, other: 'Func') -> 'Func':
+    def __add__(self, other: Expression) -> Self:
         return SUM('', self, other, op=' + ')
 
-    def __mul__(self, other) -> 'Func':
+    def __mul__(self, other: Expression) -> Self:
         return SUM('', self, other, op=' * ')
 
-    def __truediv__(self, other: 'Func') -> 'Func':
+    def __truediv__(self, other: Expression) -> Self:
         return DIV(self, other)
 
-    def __eq__(self, other: 'Func') -> bool:
+    def __eq__(self, other: Expression) -> bool:
         return str(self) == str(other)
+
+    def _func(self, param: str) -> Iterable[str]:
+        raise NotImplementedError
 
     def over(self, window: str) -> str:
         return self._as_str(window, lambda x: f'{x} OVER ({window})')
 
+    def iif_zero(self):
+        return self._iif_zero
 
 class DIV(Func):
 
-    def __init__(self, dividee: Func, divider: Func) -> None:
+    def __init__(self, dividee: Func | Expression, divider: Func | Expression) -> None:
         self.dividee = dividee
         self.divider = divider
 
     def _as_str(self, window: str = '', *_):
         # yapf: disable
         dividee, divider = self.dividee, self.divider
-        if window:
+        if window and hasattr(dividee, 'over') and hasattr(divider, 'over'):
             dividee, divider = self.dividee.over(window), self.divider.over(window)
-        return f'IIF({divider} = 0, 0, {dividee} * 1.0 / {divider})'
+        zero = divider.iif_zero() if hasattr(divider, 'iif_zero') else 0
+        return f'IIF({divider} = 0, {zero}, {dividee} * 1.0 / {divider})'
         # yapf: enable
 
 
 class SUM(Func):
 
-    def _func(self, param: str) -> Iterable[str]:
+    def _func(self, param: Expression) -> Iterable[str]:
         return f'SUM({param})',
 
 
 class COUNT(Func):
 
-    def _func(self, param: str) -> Iterable[str]:
+    def _func(self, param: Expression) -> Iterable[str]:
         return f'COUNT({param})',
 
 
 class COUNT_DISTINCT(Func):
 
-    def _func(self, param: str) -> Iterable[str]:
+    def _func(self, param: Expression) -> Iterable[str]:
         return f'COUNT(DISTINCT {param})',
 
     def over(self, window: str) -> NoReturn:
@@ -80,5 +88,5 @@ class COUNT_DISTINCT(Func):
 
 class AVG(Func):
 
-    def _func(self, param: str) -> Iterable[str]:
+    def _func(self, param: Expression) -> Iterable[str]:
         return f'AVG({param})',

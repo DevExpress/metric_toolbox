@@ -1,5 +1,6 @@
-from typing import NamedTuple
+from typing import NamedTuple, Self
 from toolbox.sql.aggs.functions import Func
+from toolbox.sql.aggs.protocols import Expression
 
 
 class Metric(NamedTuple):
@@ -11,16 +12,21 @@ class Metric(NamedTuple):
     def __str__(self) -> str:
         return str(self.expression)
 
-    def __add__(self, other: 'Metric'):
-        return Metric('', '', '', self.expression + other.expression)
+    def __add__(self, other: Expression):
+        return Metric('', '', '', self.expression + self.__to_expression(other))
 
-    def __mul__(self, other: 'Metric'):
-        return Metric('', '', '', self.expression * other.expression)
+    def __mul__(self, other: Expression):
+        return Metric('', '', '', self.expression * self.__to_expression(other))
 
-    def __truediv__(self, other: 'Metric'):
-        return Metric('', '', '', self.expression / other.expression)
+    def __truediv__(self, other: Expression):
+        return Metric('', '', '', self.expression / self.__to_expression(other))
 
-    def __eq__(self, other: 'Metric') -> bool:
+    def __to_expression(self, other):
+        if isinstance(other, Metric):
+            other = other.expression
+        return other
+
+    def __eq__(self, other: Expression) -> bool:
         return str(self) == str(other)
 
     def supports_over(self):
@@ -39,8 +45,8 @@ class Metric(NamedTuple):
         name: str,
         displayName: str,
         group: str,
-        metric: 'Metric',
-    ) -> 'Metric':
+        metric: Self,
+    ) -> Self:
         return cls(name, displayName, group, metric.expression)
 
     def get_over(self, window: str) -> str:

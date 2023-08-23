@@ -6,18 +6,29 @@ from toolbox.sql.aggs.metrics import Metric
 # yapf: disable
 def test_str():
     assert str(Metric('', '', '', 'expr1')) == 'expr1'
+    assert str(Metric('', '', '', SUM('expr1')) + SUM('expr2')) == '(SUM(expr1) + SUM(expr2))'
+    assert str(Metric('', '', '', SUM('expr1')) + 'expr2') == '(SUM(expr1) + expr2)'
 
 def test_eq():
     assert Metric('', '', '', SUM('expr1')) == Metric('', '', '', SUM('expr1'))
+    assert Metric('', '', '', SUM('expr1')) * SUM('expr2') == Metric('', '', '', SUM('expr1') * SUM('expr2'))
+    assert Metric('', '', '', SUM('expr1')) * 'expr2' == Metric('', '', '', SUM('expr1') * 'expr2')
+    assert Metric('', '', '', SUM('expr1')) == SUM('expr1')
 
 def test_add():
     assert Metric('', '', '', SUM('expr1')) + Metric('', '', '', SUM('expr2')) == Metric('', '', '', SUM('expr1') + SUM('expr2'))
+    assert Metric('', '', '', SUM('expr1')) + 'expr2' == Metric('', '', '', SUM('expr1') + 'expr2')
+    assert Metric('', '', '', SUM('expr1')) + Metric('', '', '', SUM('expr2')) + SUM('expr3') == Metric('', '', '', SUM('expr1') + SUM('expr2') + SUM('expr3'))
 
 def test_mul():
     assert Metric('', '', '', SUM('expr1')) * Metric('', '', '', SUM('expr2')) == Metric('', '', '', SUM('expr1') * SUM('expr2'))
+    assert Metric('', '', '', SUM('expr1')) * 'expr2' == Metric('', '', '', SUM('expr1') * 'expr2')
+    assert Metric('', '', '', SUM('expr1')) * Metric('', '', '', SUM('expr2')) * SUM('expr3') == Metric('', '', '', SUM('expr1') * SUM('expr2') * SUM('expr3'))
 
 def test_div():
     assert Metric('', '', '', SUM('expr1')) / Metric('', '', '', SUM('expr2')) == Metric('', '', '', SUM('expr1') / SUM('expr2'))
+    assert Metric('', '', '', SUM('expr1')) / 'expr2' == Metric('', '', '', SUM('expr1') / 'expr2')
+    assert Metric('', '', '', SUM('expr1')) / Metric('', '', '', SUM('expr2')) / SUM('expr3') == Metric('', '', '', SUM('expr1') / SUM('expr2') / SUM('expr3'))
 
 @pytest.mark.parametrize(
     'func, window, res', [
