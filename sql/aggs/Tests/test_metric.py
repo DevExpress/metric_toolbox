@@ -40,22 +40,22 @@ def test_div():
         (
             SUM('qwe') / SUM('asd'),
             'wnd',
-            'IIF(SUM(asd) OVER (wnd) = 0, 0, SUM(qwe) OVER (wnd) * 1.0 / SUM(asd) OVER (wnd))',
+            'IIF(SUM(asd) OVER (wnd) = 0, 0, SUM(qwe) OVER (wnd) * 1. / SUM(asd) OVER (wnd))',
         ),
         (
             (SUM('qwe') / SUM('asd')) / SUM('zxc'),
             'wnd',
-            'IIF(SUM(zxc) OVER (wnd) = 0, 0, IIF(SUM(asd) OVER (wnd) = 0, 0, SUM(qwe) OVER (wnd) * 1.0 / SUM(asd) OVER (wnd)) * 1.0 / SUM(zxc) OVER (wnd))',
+            'IIF(SUM(zxc) OVER (wnd) = 0, 0, IIF(SUM(asd) OVER (wnd) = 0, 0, SUM(qwe) OVER (wnd) * 1. / SUM(asd) OVER (wnd)) * 1. / SUM(zxc) OVER (wnd))',
         ),
         (
             SUM('qwe') / (SUM('asd') + SUM('zxc')),
             'wnd',
-            'IIF((SUM(asd) OVER (wnd) + SUM(zxc) OVER (wnd)) = 0, 0, SUM(qwe) OVER (wnd) * 1.0 / (SUM(asd) OVER (wnd) + SUM(zxc) OVER (wnd)))',
+            'IIF((SUM(asd) OVER (wnd) + SUM(zxc) OVER (wnd)) = 0, 0, SUM(qwe) OVER (wnd) * 1. / (SUM(asd) OVER (wnd) + SUM(zxc) OVER (wnd)))',
         ),
         (
             (SUM('qwe') + SUM('asd')) / (SUM('zxc') + SUM('wer')),
             'wnd',
-            'IIF((SUM(zxc) OVER (wnd) + SUM(wer) OVER (wnd)) = 0, 0, (SUM(qwe) OVER (wnd) + SUM(asd) OVER (wnd)) * 1.0 / (SUM(zxc) OVER (wnd) + SUM(wer) OVER (wnd)))',
+            'IIF((SUM(zxc) OVER (wnd) + SUM(wer) OVER (wnd)) = 0, 0, (SUM(qwe) OVER (wnd) + SUM(asd) OVER (wnd)) * 1. / (SUM(zxc) OVER (wnd) + SUM(wer) OVER (wnd)))',
         ),
     ]
 )
@@ -67,5 +67,5 @@ def test_over():
     m2 = Metric('', '', '', SUM('asd'))
     m3 = Metric('', '', '', SUM('zxc'))
     metric = Metric.from_metric('tst', '', '', (m1 + m2) / m3)
-    res = 'IIF(SUM(zxc) OVER (wnd) = 0, 0, (SUM(qwe) OVER (wnd) + SUM(asd) OVER (wnd)) * 1.0 / SUM(zxc) OVER (wnd))'
+    res = 'IIF(SUM(zxc) OVER (wnd) = 0, 0, (SUM(qwe) OVER (wnd) + SUM(asd) OVER (wnd)) * 1. / SUM(zxc) OVER (wnd))'
     assert metric.get_over('wnd') == res

@@ -29,13 +29,6 @@ class Metric(NamedTuple):
     def __eq__(self, other: Expression) -> bool:
         return str(self) == str(other)
 
-    def supports_over(self):
-        try:
-            self.get_over('')
-        except SyntaxError:
-            return False
-        return True
-
     def get_display_name(self) -> str:
         return self.display_name or self.name
 

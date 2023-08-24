@@ -135,28 +135,28 @@ def test_mul(
             'expr1',
             SUM,
             'expr2',
-            'IIF(SUM(expr2) = 0, 0, SUM(expr1) * 1.0 / SUM(expr2))',
+            'IIF(SUM(expr2) = 0, 0, SUM(expr1) * 1. / SUM(expr2))',
         ),
         (
             COUNT,
             'expr1',
             COUNT,
             'expr2',
-            'IIF(COUNT(expr2) = 0, 0, COUNT(expr1) * 1.0 / COUNT(expr2))',
+            'IIF(COUNT(expr2) = 0, 0, COUNT(expr1) * 1. / COUNT(expr2))',
         ),
         (
             COUNT_DISTINCT,
             'expr1',
             COUNT_DISTINCT,
             'expr2',
-            'IIF(COUNT(DISTINCT expr2) = 0, 0, COUNT(DISTINCT expr1) * 1.0 / COUNT(DISTINCT expr2))',
+            'IIF(COUNT(DISTINCT expr2) = 0, 0, COUNT(DISTINCT expr1) * 1. / COUNT(DISTINCT expr2))',
         ),
         (
             COUNT_DISTINCT,
             'expr1',
             lambda x: x,
             'expr2',
-            'IIF(expr2 = 0, 0, COUNT(DISTINCT expr1) * 1.0 / expr2)',
+            'IIF(expr2 = 0, 0, COUNT(DISTINCT expr1) * 1. / expr2)',
         ),
     ]
 )
@@ -166,14 +166,14 @@ def test_div(func1: Func, param1: str, func2: Func, param2: str, res: str):
 
 @pytest.mark.parametrize(
     'func1, param1, func2, param2, res', [
-        (SUM, 'expr1', SUM, 'expr2', 'IIF(expr2 = 0, 0, expr1 * 1.0 / expr2)'),
+        (SUM, 'expr1', SUM, 'expr2', 'IIF(expr2 = 0, 0, expr1 * 1. / expr2)'),
         (
             COUNT, 'expr1', COUNT, 'expr2',
-            'IIF(expr2 = 0, 0, expr1 * 1.0 / expr2)'
+            'IIF(expr2 = 0, 0, expr1 * 1. / expr2)'
         ),
         (
             COUNT_DISTINCT, 'expr1', COUNT_DISTINCT, 'expr2',
-            'IIF(expr2 = 0, 0, expr1 * 1.0 / expr2)'
+            'IIF(expr2 = 0, 0, expr1 * 1. / expr2)'
         ),
     ]
 )
@@ -188,7 +188,7 @@ def test_div_expr(
 
 
 def test_div_zero():
-    assert str(SUM('expr1') / SUM('expr2', iif_zero=1)) == 'IIF(SUM(expr2) = 0, 1, SUM(expr1) * 1.0 / SUM(expr2))'
+    assert str(SUM('expr1') / SUM('expr2', iif_zero=1)) == 'IIF(SUM(expr2) = 0, 1, SUM(expr1) * 1. / SUM(expr2))'
 
 
 @pytest.mark.parametrize(
@@ -200,21 +200,30 @@ def test_div_zero():
 def test_over(func: Func, param: str, wnd: str, res: str):
     assert func(param).over(wnd) == res
 
+def test_mul_over():
+    assert (SUM('expr1') * 'expr2').over('wnd') == 'SUM(expr1) OVER (wnd) * expr2'
 
 def test_count_distinct_over():
-    with pytest.raises(SyntaxError):
-        COUNT_DISTINCT('qwe').over('wnd')
+    COUNT_DISTINCT('qwe').over('wnd') == (
+            f'(DENSE_RANK() OVER (wnd ORDER BY qwe) + '
+            + f'DENSE_RANK() OVER (wnd ORDER BY qwe DESC) - ' +
+            f'SUM(IIF(qwe IS NULL, 1, 0)) OVER (wnd ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) - 1)'
+        )
 
 
 @pytest.mark.parametrize(
     'func1, param1, func2, param2, wnd, res', [
         (
             SUM, 'expr1', SUM, 'expr2', 'qwe',
-            'IIF(SUM(expr2) OVER (qwe) = 0, 0, SUM(expr1) OVER (qwe) * 1.0 / SUM(expr2) OVER (qwe))'
+            'IIF(SUM(expr2) OVER (qwe) = 0, 0, SUM(expr1) OVER (qwe) * 1. / SUM(expr2) OVER (qwe))'
         ),
         (
             COUNT, 'expr1', COUNT, 'expr2', 'qwe',
-            'IIF(COUNT(expr2) OVER (qwe) = 0, 0, COUNT(expr1) OVER (qwe) * 1.0 / COUNT(expr2) OVER (qwe))'
+            'IIF(COUNT(expr2) OVER (qwe) = 0, 0, COUNT(expr1) OVER (qwe) * 1. / COUNT(expr2) OVER (qwe))'
+        ),
+        (
+            COUNT, 'expr1', lambda x: x, 'expr2', 'qwe',
+            'IIF(expr2 = 0, 0, COUNT(expr1) OVER (qwe) * 1. / expr2)'
         ),
     ]
 )
