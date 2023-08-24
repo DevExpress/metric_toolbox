@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterable
-from typing import NoReturn, Self
+from typing import NoReturn
 from numbers import Number
 from toolbox.sql.aggs.protocols import Expression
 
@@ -13,7 +13,7 @@ class Func:
     def _as_str(
         self,
         window: str = '',
-        format: Callable[[Self], str] = lambda x: str(x),
+        format: Callable[['Func'], str] = lambda x: str(x),
     ) -> str:
         res = self.op.join(format(expr) for expr in self.expressions)
         if len(self.expressions) > 1 and self.op == ' + ':
@@ -26,13 +26,13 @@ class Func:
     def __repr__(self) -> str:
         return self.__str__()
 
-    def __add__(self, other: Expression) -> Self:
+    def __add__(self, other: Expression) -> 'Func':
         return SUM('', self, other, op=' + ')
 
-    def __mul__(self, other: Expression) -> Self:
+    def __mul__(self, other: Expression) -> 'Func':
         return SUM('', self, other, op=' * ')
 
-    def __truediv__(self, other: Expression) -> Self:
+    def __truediv__(self, other: Expression) -> 'Func':
         return DIV(self, other)
 
     def __eq__(self, other: Expression) -> bool:

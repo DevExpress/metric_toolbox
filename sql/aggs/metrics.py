@@ -1,4 +1,4 @@
-from typing import NamedTuple, Self
+from typing import NamedTuple
 from toolbox.sql.aggs.functions import Func
 from toolbox.sql.aggs.protocols import Expression
 
@@ -45,8 +45,8 @@ class Metric(NamedTuple):
         name: str,
         displayName: str,
         group: str,
-        metric: Self,
-    ) -> Self:
+        metric: 'Metric',
+    ) -> 'Metric':
         return cls(name, displayName, group, metric.expression)
 
     def get_over(self, window: str) -> str:
