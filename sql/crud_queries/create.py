@@ -5,7 +5,7 @@ from typing import NamedTuple, Literal
 class QueryField(NamedTuple):
     source_name: str
     target_name: str
-    type: Literal['INTEGER', 'TEXT']
+    type: Literal['TEXT', 'INTEGER', 'REAL']
 
     def __str__(self) -> str:
         return f'{self.target_name} {self.type}'
