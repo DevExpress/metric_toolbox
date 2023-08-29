@@ -26,7 +26,7 @@ class QueryDescriptor(Generic[T]):
         return kwargs.get('path', self.path)
 
     def get_fields_meta(self, kwargs: Mapping) -> MetaData:
-        return kwargs.get('fields_meta', self.format_params)
+        return self.fields_meta
 
     def get_fields(self, kwargs: Mapping) -> Iterable[str]:
         return self.get_fields_meta(kwargs).get_values()
