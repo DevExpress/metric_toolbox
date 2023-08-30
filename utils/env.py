@@ -19,5 +19,5 @@ def recalculate_for_last_n_months() -> int:
     return int(os.environ.get(__recalc_for_last_months, 0))
 
 
-def reset_recalculate_for_last_months():
+def reset_recalculate_for_last_n_months():
     os.environ[__recalc_for_last_months] = str(0)
