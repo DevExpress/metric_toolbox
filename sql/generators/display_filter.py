@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Callable
 from typing import Any, Protocol, NamedTuple
+from toolbox.sql.meta_data import KnotMeta
 from toolbox.utils.converters import Object_to_JSON
 from toolbox.sql.query_executors.sqlite_query_executor import SQLiteQueryExecutor
 from toolbox.sql.sql_query import GeneralSelectSqlQuery
@@ -14,8 +15,8 @@ from toolbox.sql.generators.filter_clause_generator_factory import (
 
 class QueryParams(NamedTuple):
     table: str
-    value_field: str = 'id'
-    display_field: str = 'name'
+    value_field: str = KnotMeta.id
+    display_field: str = KnotMeta.name
 
 
 class DisplayValuesStore(Protocol):
