@@ -4,6 +4,7 @@ from toolbox.utils.converters import to_quoted_string
 from toolbox.sql.generators.decorators import (
     include_filter,
     exclude_filter,
+    null_only,
     not_null_only,
 )
 
@@ -112,6 +113,11 @@ def generate_not_equals_filter(
 
 @not_null_only
 def generate_is_not_null_filter(*, col: str, **_) -> str:
+    ...
+
+
+@null_only
+def generate_is_null_filter(*, col: str, **_) -> str:
     ...
 
 

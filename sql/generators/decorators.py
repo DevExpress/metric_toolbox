@@ -2,6 +2,17 @@ from collections.abc import Iterable, Callable
 from wrapt import decorator
 from toolbox.sql.generators import NULL_FILTER_VALUE
 
+@decorator
+def null_only(
+    base_filter: Callable[..., str],
+    instance,
+    args: Iterable,
+    kwargs: dict,
+):
+    return __generate_filter(
+        kwargs,
+        __generate_is_null_filter(kwargs),
+    )
 
 @decorator
 def not_null_only(

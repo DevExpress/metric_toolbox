@@ -261,6 +261,13 @@ def test_generate_not_like_filter(
     ) == output
 
 
+def test_generate_is_null_filter():
+    assert SqlFilterClauseGenerator.generate_is_null_filter(
+        col='col',
+        filter_prefix='WHERE',
+    ) == 'WHERE col IS NULL'
+
+
 def test_generate_is_not_null_filter():
     assert SqlFilterClauseGenerator.generate_is_not_null_filter(
         col='col',
