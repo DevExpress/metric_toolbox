@@ -92,5 +92,10 @@ class MetricAggMeta(MetaData):
     name = 'name'
 
 
+class PeriodMeta(MetaData):
+    start = 'start'
+    end = 'end'
+
+
 def _apply(f: Callable, iter: Iterable) -> Sequence:
     return tuple(f(x) for x in iter)
