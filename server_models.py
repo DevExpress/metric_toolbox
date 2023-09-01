@@ -3,7 +3,7 @@ from pydantic.fields import FieldInfo
 from pydantic.generics import GenericModel
 
 
-T = TypeVar('T', int, str)
+T = TypeVar('T', int, str, bool)
 
 
 class ServerModel(GenericModel):
