@@ -61,7 +61,7 @@ class PeriodQueryDescriptor(GeneralSelectAsyncQueryDescriptor):
 
     def get_format_params(self, kwargs: Mapping) -> Mapping[str, str]:
         return {
-            'select': f"MIN({self.field}) AS {PeriodMeta.start}, DATE(MAX({self.field}), '+1 months') AS {PeriodMeta.end}",
+            'select': f"MIN({self.field}) AS {PeriodMeta.start}, MAX({self.field}) AS {PeriodMeta.end}",
             'from': self.tbl,
             'where_group_limit': '',
         }
