@@ -5,7 +5,7 @@ from itertools import chain
 
 class Field(NamedTuple):
     name: str
-    sqlite_type: Literal['TEXT', 'INTEGER', 'REAL']
+    sqlite_type: Literal['TEXT', 'INTEGER', 'REAL', 'NUMERIC']
 
     def __str__(self) -> str:
         return self.name

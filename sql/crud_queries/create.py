@@ -49,7 +49,7 @@ class SqliteCreateTableQuery:
         if self._values:
             keys_aliases += ','
 
-        fields = ',\n\t\t'.join(val.target_name for val in self._keys)
+        fields = ',\n\t\t'.join(str(val.target_name) for val in self._keys)
         pk = f"\n\tPRIMARY KEY (\n\t\t{fields}\n\t)\n"
 
         return keys, keys_aliases, pk, ' WITHOUT ROWID'
