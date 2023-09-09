@@ -1,14 +1,7 @@
 from collections.abc import Mapping, Iterable, Sequence, Callable
-from typing import Literal, NamedTuple, Any, TypeVar
+from typing import Any, TypeVar
 from itertools import chain
-
-
-class Field(NamedTuple):
-    name: str
-    sqlite_type: Literal['TEXT', 'INTEGER', 'REAL', 'NUMERIC']
-
-    def __str__(self) -> str:
-        return self.name
+from toolbox.sql.field import Field
 
 
 Field_T = TypeVar('Field_T', Field, str)
@@ -77,24 +70,24 @@ class MetaData:
 
 
 class KnotMeta(MetaData):
-    id = 'id'
-    name = 'name'
+    id = Field()
+    name = Field()
 
 
 class ValidationMeta(MetaData):
-    value = 'value'
-    valid = 'valid'
+    value = Field()
+    valid = Field()
 
 
 class MetricAggMeta(MetaData):
-    period = 'period'
-    agg = 'agg'
-    name = 'name'
+    period = Field()
+    agg = Field()
+    name = Field()
 
 
 class PeriodMeta(MetaData):
-    start = 'start'
-    end = 'end'
+    start = Field()
+    end = Field()
 
 
 def _apply(f: Callable, iter: Iterable) -> Sequence:
