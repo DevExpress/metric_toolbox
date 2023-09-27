@@ -1,17 +1,5 @@
 from collections.abc import Sequence
-from typing import NamedTuple, Literal
-
-
-class QueryField(NamedTuple):
-    source_name: str
-    target_name: str
-    type: Literal['TEXT', 'INTEGER', 'REAL']
-
-    def __str__(self) -> str:
-        return f'{self.target_name} {self.type}'
-
-    def as_alias(self) -> str:
-        return f'{self.source_name} AS {self.target_name}'
+from toolbox.sql.field import QueryField
 
 
 class SqliteCreateTableQuery:

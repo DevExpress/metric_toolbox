@@ -15,8 +15,8 @@ from toolbox.sql.generators.filter_clause_generator_factory import (
 
 class QueryParams(NamedTuple):
     table: str
-    value_field: str = KnotMeta.id
-    display_field: str = KnotMeta.name
+    value_field: str = KnotMeta.id.name
+    display_field: str = KnotMeta.name.name
 
 
 class DisplayValuesStore(Protocol):

@@ -2,6 +2,7 @@ import pytest
 import toolbox.sql.generators.display_filter as DisplayFilterGenerator
 from pandas import DataFrame
 from pydantic import Field
+from toolbox.sql.meta_data import KnotMeta
 from toolbox.sql.generators.display_filter import QueryParams
 from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor
 from toolbox.sql.generators import NULL_FILTER_VALUE
@@ -172,3 +173,10 @@ def test_generate_conversion_filter(
             custom_display_filter=lambda *args: None,
             display_values_store=DisplayValuesStore,
         ) == output
+
+
+# yapf: enable
+def test_query_params_defaults():
+    qp = QueryParams(table='tents_name')
+    assert qp.display_field == KnotMeta.name.name
+    assert qp.value_field == KnotMeta.id.name

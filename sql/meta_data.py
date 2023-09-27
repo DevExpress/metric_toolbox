@@ -1,7 +1,7 @@
 from collections.abc import Mapping, Iterable, Sequence, Callable
 from typing import Any, TypeVar
 from itertools import chain
-from toolbox.sql.field import Field
+from toolbox.sql.field import Field, TEXT, INTEGER
 
 
 Field_T = TypeVar('Field_T', Field, str)
@@ -11,7 +11,13 @@ Projector_T = TypeVar(
 )
 
 
-class MetaData:
+class __meta(type):
+
+    def __str__(self) -> str:
+        return ', '.join(self.get_values())
+
+
+class MetaData(metaclass=__meta):
 
     @classmethod
     def _get_dict(cls) -> Mapping[str, Field_T]:
@@ -63,31 +69,41 @@ class MetaData:
     def get_conflicting_fields(
         cls,
         projector: Projector_T = str,
+        preserve_order: bool = False
     ) -> Sequence[Field_T | Any]:
+        if preserve_order:
+            keys = cls.get_key_fields(str)
+            return _apply(
+                projector,
+                (
+                    field for field in cls.get_values(lambda x: x)
+                    if str(field) not in keys
+                ),
+            )
         key_fields = set(cls.get_key_fields(projector))
         all_fields = set(cls.get_values(projector))
         return all_fields - key_fields
 
 
 class KnotMeta(MetaData):
-    id = Field()
-    name = Field()
+    id = Field(TEXT)
+    name = Field(TEXT)
 
 
 class ValidationMeta(MetaData):
-    value = Field()
-    valid = Field()
+    value = Field(TEXT)
+    valid = Field(INTEGER)
 
 
 class MetricAggMeta(MetaData):
-    period = Field()
-    agg = Field()
-    name = Field()
+    period = Field(TEXT)
+    agg = Field(TEXT)
+    name = Field(TEXT)
 
 
 class PeriodMeta(MetaData):
-    start = Field()
-    end = Field()
+    start = Field(TEXT)
+    end = Field(TEXT)
 
 
 def _apply(f: Callable, iter: Iterable) -> Sequence:
