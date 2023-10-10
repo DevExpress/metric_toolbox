@@ -1,5 +1,6 @@
 from collections.abc import Iterable, Mapping
 from typing import Type
+from toolbox.sql.meta_data import KnotMeta
 from toolbox.sql.sql_query import SqlQuery, SqlAlchemyQuery
 
 
@@ -9,7 +10,7 @@ class RepositoryQueries:
     def __init__(
         self,
         main_query_path: str = None,
-        main_query_format_params: Mapping[str, str] = {},
+        main_query_format_params: Mapping[str, str] = KnotMeta.get_attrs(),
         must_have_columns: Iterable[str] = [],
         main_queries: Mapping[str, SqlQuery] = {},
         prep_queries: Iterable[SqlQuery] = tuple(),
