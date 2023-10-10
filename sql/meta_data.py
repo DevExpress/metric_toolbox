@@ -90,6 +90,11 @@ class KnotMeta(MetaData):
     name = Field(TEXT)
 
 
+class IntKnotMeta(MetaData):
+    id = Field(INTEGER)
+    name = Field(TEXT)
+
+
 class ValidationMeta(MetaData):
     value = Field(TEXT)
     valid = Field(INTEGER)
