@@ -1,2 +1,6 @@
+import os
+
+
 def debug(msg: str, *args, **kwargs):
-    print(msg)
+    if os.environ.get('DEBUG', None):
+        print(msg)

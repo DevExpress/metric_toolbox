@@ -5,19 +5,38 @@ __recalc_from_beginning = 'RECALCULATE_FROM_THE_BEGINNING'
 
 
 def recalculate_from_beginning():
-    return int(os.environ[__recalc_from_beginning]) == 1
+    return __get_env_val(__recalc_from_beginning) == 1
 
 
 def reset_recalculate_from_beginning():
-    os.environ[__recalc_from_beginning] = str(0)
+    __reset_env_val(__recalc_from_beginning)
 
 
 __recalc_for_last_months = 'RECALCULATE_FOR_LAST_MONTHS'
 
 
 def recalculate_for_last_n_months() -> int:
-    return int(os.environ.get(__recalc_for_last_months, 0))
+    return __get_env_val(__recalc_for_last_months)
 
 
 def reset_recalculate_for_last_n_months():
-    os.environ[__recalc_for_last_months] = str(0)
+    __reset_env_val(__recalc_for_last_months)
+
+
+__recalc_for_last_days = 'RECALCULATE_FOR_LAST_DAYS'
+
+
+def recalculate_for_last_n_days() -> int:
+    return __get_env_val(__recalc_for_last_days)
+
+
+def reset_recalculate_for_last_n_days():
+    __reset_env_val(__recalc_for_last_days)
+
+
+def __get_env_val(env: str):
+    return int(os.environ.get(env, 0))
+
+
+def __reset_env_val(env: str):
+    os.environ[env] = str(0)

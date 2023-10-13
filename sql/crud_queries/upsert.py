@@ -1,5 +1,6 @@
 from collections.abc import Sequence, Iterable
-
+from toolbox.sql.generators.sqlite.statements import generate_on_conflict
+import toolbox.logger as Logger
 
 class SqliteUpsertQuery:
 
@@ -14,7 +15,7 @@ class SqliteUpsertQuery:
         self._table_name = table_name
         self._cols = cols
         self._key_cols = key_cols
-        self.confilcting_cols = confilcting_cols
+        self._confilcting_cols = confilcting_cols
         self._rows = rows
         self._cached_query = None
 
@@ -29,16 +30,14 @@ class SqliteUpsertQuery:
                 VALUES({', '.join('?' * len(self._cols))})
                 {self.get_on_conflict()}
             '''
+        Logger.debug(self._cached_query)
         return self._cached_query
 
     def get_on_conflict(self):
-        confilcting_cols = ',\n'.join(
-            f'{col}=excluded.{col}' for col in self.confilcting_cols
+        return generate_on_conflict(
+            key_cols=self._key_cols,
+            confilcting_cols=self._confilcting_cols,
         )
-        if confilcting_cols:
-            return f'''ON CONFLICT({', '.join(self._key_cols)}) DO UPDATE SET
-                {confilcting_cols}'''
-        return 'ON CONFLICT DO NOTHING'
 
     def get_parameters(self):
         return self._rows
