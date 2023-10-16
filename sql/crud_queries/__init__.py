@@ -3,5 +3,8 @@ from toolbox.sql.crud_queries.create import (
     SqliteCreateTableQuery,
     SqliteCreateTableFromTableQuery,
     QueryField,
-    DropRowsTriggerParams,
+)
+from toolbox.sql.crud_queries.delete import (
+    DeleteRowsOlderThanQuery,
+    DropTableQuery,
 )

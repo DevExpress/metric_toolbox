@@ -26,7 +26,7 @@ class SqlQueryExecutor(DbConnectable):
             self.execute_nonquery(*prep_queries, tran=tran)
 
         if main_query:
-            Logger.debug(main_query._file_path)
+            Logger.debug(main_query)
             return self._execute_query(
                 query=main_query,
                 tran=tran,
@@ -34,7 +34,7 @@ class SqlQueryExecutor(DbConnectable):
 
         res = {}
         for k, query in main_queries.items():
-            Logger.debug(f'{k} : {query._file_path}')
+            Logger.debug(f'{k} : {query}')
             res[k] = self._execute_query(
                 query=query,
                 tran=tran,
@@ -48,8 +48,8 @@ class SqlQueryExecutor(DbConnectable):
         tran: Optional[Transaction] = None,
     ) -> None:
         for query in queries:
-            if isinstance(query, SqlQuery):
-                Logger.debug(query._file_path)
+            if hasattr(query, 'get_script'):
+                Logger.debug(query)
                 query = query.get_script()
 
             self._execute_script(script=query, tran=tran)

@@ -1,16 +1,10 @@
 from collections.abc import Sequence, Callable
-from typing import Any, NamedTuple
-from toolbox.sql.field import QueryField
-from toolbox.sql.generators.sqlite.statements import generate_on_conflict, generate_drop_rows_older_than_trigger
+from typing import Any
+from toolbox.sql.generators.utils import multiline_non_empty
+from toolbox.sql.field import QueryField, Field
+from toolbox.sql.generators.sqlite.statements import on_conflict
+from toolbox.sql.crud_queries.delete import DropTableQuery
 import toolbox.logger as Logger
-
-
-class DropRowsTriggerParams(NamedTuple):
-    modifier: str = ''
-    date_field: str = ''
-
-    def __bool__(self):
-        return self.modifier != '' and self.date_field != ''
 
 
 class SqliteCreateTableQuery:
@@ -18,17 +12,15 @@ class SqliteCreateTableQuery:
     def __init__(
         self,
         target_table_name: str,
-        unique_key_fields: Sequence[QueryField] | None,
+        unique_key_fields: Sequence[QueryField],
         values_fields: Sequence[QueryField] | None = None,
         *,
-        keep_rows_for_last: DropRowsTriggerParams = DropRowsTriggerParams(),
         recreate: bool = False,
     ) -> None:
         self._target_table_name = target_table_name
         self._keys = unique_key_fields
         self._values = values_fields
         self._cached_query = None
-        self._keep_rows_for_last = keep_rows_for_last
         self._recreate = recreate
 
     def get_table_name(self) -> str:
@@ -36,24 +28,30 @@ class SqliteCreateTableQuery:
 
     def get_script(self, extender: str = '') -> str:
         if self._cached_query is None:
-            keys, _, pk, without_rowid = self._get_keys()
-            values, _ = self._get_values()
-            self._cached_query = f'DROP TABLE IF EXISTS {self._target_table_name};\n' if self._recreate else ''
-            self._cached_query += f'CREATE TABLE IF NOT EXISTS {self._target_table_name} ({keys}{values}{pk}){without_rowid};\n'
-            self._cached_query += generate_drop_rows_older_than_trigger(
-                tbl=self._target_table_name,
-                date_field=self._keep_rows_for_last.date_field,
-                modifier=self._keep_rows_for_last.modifier
+            self._cached_query = multiline_non_empty(
+                self.__drop(),
+                self.__create(),
+                extender,
             )
-            self._cached_query += extender
         Logger.debug(self._cached_query)
         return self._cached_query
 
-    def get_keys(self, projector: Callable[[QueryField], Any] = str):
+    def __drop(self):
+        return str(DropTableQuery(self._target_table_name)) if self.recreate() else ''
+
+    def __create(self):
+        keys, _, pk, without_rowid = self._get_keys()
+        values, _ = self._get_values()
+        return f'CREATE TABLE IF NOT EXISTS {self._target_table_name} ({keys}{values}{pk}){without_rowid};'
+
+    def keys(self, projector: Callable[[QueryField], Any] = str):
         return [projector(x) for x in self._keys]
 
-    def get_values(self, projector: Callable[[QueryField], Any] = str):
+    def values(self, projector: Callable[[QueryField], Any] = str):
         return [projector(x) for x in self._values]
+
+    def recreate(self):
+        return self._recreate
 
     def _get_keys(self):
         if not self._keys:
@@ -94,44 +92,52 @@ class SqliteCreateTableFromTableQuery(SqliteCreateTableQuery):
         unique_key_fields: Sequence[QueryField] | None,
         values_fields: Sequence[QueryField] | None = None,
         *,
-        keep_rows_for_last: DropRowsTriggerParams = DropRowsTriggerParams(),
+        unique_fields: Sequence[Field] | None = None,
         recreate: bool = True,
     ) -> None:
         self._source_table_or_subquery = source_table_or_subquery
+        self._unique_fields = unique_fields
         super().__init__(
             target_table_name=target_table_name,
-            unique_key_fields=unique_key_fields,
+            unique_key_fields=unique_key_fields or tuple(),
             values_fields=values_fields,
             recreate=recreate,
-            keep_rows_for_last=keep_rows_for_last,
         )
 
     def get_script(self, extender: str = '') -> str:
         if self._cached_query is None:
-            self._cached_query = super().get_script(extender) + '\n'
-            _, key_alias, *_ = self._get_keys()
-            _, values_aliases = self._get_values()
-
-            self._cached_query += (
-                f'INSERT INTO {self._target_table_name}\n'
-                + f'SELECT DISTINCT {key_alias}{values_aliases}\n'
-                + f'FROM {self._source_table_or_subquery}\n'
-                + f'{self.get_not_null_keys_filter()}\n'
-                + self.get_on_conflict()
+            self._cached_query = multiline_non_empty(
+                self.__create(extender),
+                self.__upsert(),
             )
         Logger.debug(self._cached_query)
         return self._cached_query
 
-    def get_not_null_keys_filter(self):
-        if self._keys:
-            filter = ' AND \n'.join(
-                f'{key.source_name} IS NOT NULL' for key in self._keys
-            )
+    def __create(self, extender):
+        return super().get_script(extender)
+
+    def __upsert(self):
+        _, key_alias, *_ = self._get_keys()
+        _, values_aliases = self._get_values()
+        return multiline_non_empty(
+            f'INSERT INTO {self._target_table_name}',
+            f'SELECT DISTINCT {key_alias}{values_aliases}',
+            f'FROM {self._source_table_or_subquery}',
+            self._where_keys_not_null(),
+            self._on_conflict(),
+        )
+
+    def _where_keys_not_null(self):
+        keys = self.keys(lambda x: x.source_name) or self._unique_fields
+        if keys:
+            filter = ' AND \n'.join(f'{key} IS NOT NULL' for key in keys)
             return 'WHERE ' + filter
         return ''
 
-    def get_on_conflict(self):
-        return generate_on_conflict(
-            key_cols=self.get_keys(lambda x: x.target_name),
-            confilcting_cols=self.get_values(lambda x: x.target_name),
+    def _on_conflict(self):
+        if self.recreate():
+            return ''
+        return on_conflict(
+            key_cols=self._unique_fields or self.keys(lambda x: x.target_name),
+            confilcting_cols=self.values(lambda x: x.target_name),
         )
