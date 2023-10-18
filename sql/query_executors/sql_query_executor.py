@@ -49,9 +49,8 @@ class SqlQueryExecutor(DbConnectable):
     ) -> None:
         for query in queries:
             if hasattr(query, 'get_script'):
-                Logger.debug(query)
                 query = query.get_script()
-
+            Logger.debug(query)
             self._execute_script(script=query, tran=tran)
 
     def _execute_query(
