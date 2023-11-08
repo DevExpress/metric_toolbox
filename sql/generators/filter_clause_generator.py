@@ -71,8 +71,8 @@ def generate_right_halfopen_interval_filter(
     values_converter: Callable[[Any], str] = to_quoted_string,
     **kwargs,
 ):
-    start, end, *_ = values
-    filter = f'{values_converter(start)} <= {col} AND {col} < {values_converter(end)}'
+    start, end, *_ = map(values_converter, values)
+    filter = f'{le(start, col)} AND {lt(col, end)}'
     return parenthesize_if_orfilter(kwargs, filter)
 
 
@@ -84,8 +84,8 @@ def generate_exclude_right_halfopen_interval_filter(
     values_converter: Callable[[Any], str] = to_quoted_string,
     **kwargs,
 ):
-    start, end, *_ = values
-    filter = f'{values_converter(start)} > {col} AND {col} >= {values_converter(end)}'
+    start, end, *_ = map(values_converter, values)
+    filter = f'{gt(start, col)} AND {ge(col, end)}'
     return parenthesize_if_orfilter(kwargs, filter)
 
 
@@ -97,7 +97,7 @@ def generate_equals_filter(
     value_converter: Callable[[Any], str] = to_quoted_string,
     **kwargs,
 ):
-    return f'{col} = {value_converter(value)}'
+    return eq(col, value_converter(value))
 
 
 @exclude_filter
@@ -108,7 +108,29 @@ def generate_not_equals_filter(
     value_converter: Callable[[Any], str] = to_quoted_string,
     **kwargs,
 ):
-    return f'{col} != {value_converter(value)}'
+    return ne(col, value_converter(value))
+
+
+@include_filter
+def generate_less_equals_filter(
+    *,
+    col: str,
+    value: Any,
+    value_converter: Callable[[Any], str] = to_quoted_string,
+    **kwargs,
+):
+    return le(col, value_converter(value))
+
+
+@exclude_filter
+def generate_not_less_equals_filter(
+    *,
+    col: str,
+    value: Any,
+    value_converter: Callable[[Any], str] = to_quoted_string,
+    **kwargs,
+):
+    return gt(col, value_converter(value))
 
 
 @not_null_only
@@ -130,8 +152,32 @@ def like(col: str, values: Iterable):
 
 
 def between(values: Iterable, values_converter: Callable[[Any], str]):
-    start, end, *_ = values
-    return f'BETWEEN {values_converter(start)} AND {values_converter(end)}'
+    start, end, *_ = map(values_converter, values)
+    return f'BETWEEN {start} AND {end}'
+
+
+def eq(col: str, value: Any):
+    return f'{col} = {value}'
+
+
+def ne(col: str, value: Any):
+    return f'{col} != {value}'
+
+
+def lt(col: str, value: Any):
+    return f'{col} < {value}'
+
+
+def le(col: str, value: Any):
+    return f'{col} <= {value}'
+
+
+def gt(col: str, value: Any):
+    return f'{col} > {value}'
+
+
+def ge(col: str, value: Any):
+    return f'{col} >= {value}'
 
 
 def parenthesize_if_orfilter(kwargs: dict, filter: str) -> str:

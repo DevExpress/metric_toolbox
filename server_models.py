@@ -20,10 +20,11 @@ class ServerModel(GenericModel):
     def get_filter_op(self, field_name) -> str:
         val = self.__dict__[field_name]
         if hasattr(val, 'include'):
+            hasValues = hasattr(val, 'values')
             fi: FieldInfo = self.__fields__[field_name].field_info
             if val.include:
-                return fi.extra.get('positive_filter_op', 'in')
-            return fi.extra.get('negative_filter_op', 'notin')
+                return fi.extra.get('positive_filter_op', 'in' if hasValues else '=')
+            return fi.extra.get('negative_filter_op', 'notin' if hasValues else '!=')
         raise NotImplementedError
 
 

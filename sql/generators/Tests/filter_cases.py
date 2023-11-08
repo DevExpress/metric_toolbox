@@ -1,4 +1,7 @@
-from toolbox.sql.generators.Tests.mocks import MockFilterParametersNode
+from toolbox.sql.generators.Tests.mocks import (
+    MockFilterParametersNode,
+    MockFilterParameterNode,
+)
 from toolbox.utils.converters import to_quoted_string
 from toolbox.sql.generators import NULL_FILTER_VALUE
 
@@ -277,5 +280,31 @@ def between_filter_cases(convert, prefix='WHERE'):
         (
             MockFilterParametersNode(include=False, values=[1, 2, NULL_FILTER_VALUE]),
             prefix + ' ({field} IS NOT NULL AND {field} NOT BETWEEN ' + f'{convert(1)} AND {convert(2)})',
+        ),
+    ]
+
+def equals_filter_cases(convert, prefix='WHERE'):
+    convert = convert or to_quoted_string
+    return [
+        (
+            MockFilterParameterNode(include=True, value=1),
+            prefix + ' {field} = ' + f'{convert(1)}'
+        ),
+        (
+            MockFilterParameterNode(include=False, value=1),
+            prefix + ' ({field} IS NULL OR {field} != ' + f'{convert(1)})'
+        ),
+    ]
+
+def less_equals_filter_cases(convert, prefix='WHERE'):
+    convert = convert or to_quoted_string
+    return [
+        (
+            MockFilterParameterNode(include=True, value=1),
+            prefix + ' {field} <= ' + f'{convert(1)}'
+        ),
+        (
+            MockFilterParameterNode(include=False, value=1),
+            prefix + ' ({field} IS NULL OR {field} > ' + f'{convert(1)})'
         ),
     ]

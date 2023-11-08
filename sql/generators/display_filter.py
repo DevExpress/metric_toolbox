@@ -83,7 +83,7 @@ def __generate_display_filter(
                         alias=field_alias,
                         value=filter_node.value,
                     )
-                    filter = [field_alias, '=', display_value]
+                    filter = [field_alias, node.get_filter_op(field_name), display_value]
 
                 case _:
                     filter = __generate_display_filter(node=filter_node)
