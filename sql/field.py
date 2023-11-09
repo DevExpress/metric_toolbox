@@ -8,6 +8,13 @@ NUMERIC = 'NUMERIC'
 
 
 class Field:
+    """
+    SQLITE column descriptor which is used as part of create table statements:
+    CREATE TABLE IF NOT EXISTS table_name (
+        col1 type,
+        col2 type
+    );
+    """
     __slots__ = ('name', 'type')
 
     def __init__(
@@ -39,6 +46,18 @@ class Field:
 
 
 class QueryField(NamedTuple):
+    """
+    SQLITE column descriptor which is used as part of create / insert into table from table statements:
+
+    CREATE TABLE IF NOT EXISTS table_name (
+        col1 type,
+        col2 type
+    );
+
+    INSERT INTO target_table
+    SELECT  source_col AS target_col
+    FROM    source_table
+    """
     source_name: str
     target_name: str
     type: Union[TEXT, INTEGER, REAL, NUMERIC]
