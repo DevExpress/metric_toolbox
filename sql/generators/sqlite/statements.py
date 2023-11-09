@@ -11,8 +11,7 @@ def create_index(
     cols = tuple(str(col) for col in cols)
     unq = 'UNIQUE' if unique else ''
     name = name if name else "_".join(cols)
-    res = f'CREATE {unq} INDEX IF NOT EXISTS idx_{tbl}_{name} ON {tbl}({",".join(cols)});'
-    return res
+    return f'CREATE {unq} INDEX IF NOT EXISTS idx_{tbl}_{name} ON {tbl}({",".join(cols)});'
 
 
 def on_conflict(

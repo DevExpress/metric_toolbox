@@ -26,7 +26,6 @@ class SqliteUpsertQuery:
 
     def get_script(self, extender: str = '') -> str:
         if self._cached_query is None:
-
             self._cached_query = multiline_non_empty(
                 f"INSERT INTO {self._table_name}({', '.join(self._cols)})",
                 f"VALUES({', '.join('?' * len(self._cols))})",
