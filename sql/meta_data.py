@@ -24,8 +24,9 @@ class __meta(type):
 
 class MetaData(metaclass=__meta):
     """
-    Contains attrs of the Field or str type, describing table columns.
-    Attrs may be used for creating tables, validating sql query columns etc.
+    Describes a table.
+    Attrs of the Field or str type describe table columns.
+    This class may be used for creating tables, validating sql query columns etc.
     """
 
     @classmethod
@@ -33,6 +34,7 @@ class MetaData(metaclass=__meta):
         """
         Returns attrs collected from the whole inheritace chain
         in the subclass -> superclass order.
+        Attrs starting with _ or get_ are ignored.
         """
         res = {}
         while cls:
@@ -118,6 +120,27 @@ class MetaData(metaclass=__meta):
         key_fields = set(cls.get_key_fields(projector))
         all_fields = set(cls.get_values(projector))
         return all_fields - key_fields
+
+    @classmethod
+    def get_name(cls) -> str:
+        """
+        Returns table name.
+        """
+        return cls.__name__
+    
+    @classmethod
+    def get_alias(cls) -> str:
+        """
+        Returns table alias.
+        """
+        return cls.get_name()
+
+    @classmethod
+    def get_indices(cls) -> Sequence[str]:
+        """
+        Returns index statements to be executed.
+        """
+        return tuple()
 
 
 class KnotMeta(MetaData):

@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Iterable
 from typing import NamedTuple
 from pandas import DataFrame
 from toolbox.sql.crud_queries.protocols import CRUDQuery
@@ -17,7 +17,7 @@ class SaveTableOperation(DbConnectable):
         conn: Connection,
         query: CRUDQuery,
         tables_defs: Mapping[str, str] = {},
-        create_index_statements: Mapping[str, str] = {},
+        create_index_statements: Mapping[str, str] | Iterable[str] = None,
     ) -> None:
         super().__init__(conn)
         self._query = query
@@ -53,7 +53,9 @@ class SaveTableOperation(DbConnectable):
 
     def __try_create_index(self, tran: Transaction):
         tbl_name = self._query.get_table_name()
-        statements = self._create_index_statements.get(tbl_name, None)
+        statements = self._create_index_statements
+        if hasattr(self._create_index_statements, 'get'):
+            statements = self._create_index_statements.get(tbl_name, None)
         if statements is not None:
             for statement in statements:
                 tran.executescript(statement)
