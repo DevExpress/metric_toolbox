@@ -73,7 +73,7 @@ class MetaData(metaclass=__meta):
         *exfields: Field_T,
     ) -> Sequence[Field_T | Any]:
         """"
-        Returns fields which may by used for redundant index creation.
+        Returns fields which may by used for non clustered [unique] index creation.
         projector is used for projecting attr values into required form.
         exfields is meant for adding additional fields to the index on the fly.
         """
@@ -87,6 +87,7 @@ class MetaData(metaclass=__meta):
     ) -> Sequence[Field_T | Any]:
         """
         Returns fields which may by used for clustered index creation.
+        Until explicitly disabled, returns first non-empty of get_index_fields or get_values.
         projector is used for projecting attr values into required form.
         exfields is meant for adding additional fields to the index on the fly.
         """
@@ -104,20 +105,23 @@ class MetaData(metaclass=__meta):
         preserve_order: bool = False
     ) -> Sequence[Field_T | Any]:
         """
-        Returns non clustered index fields.
+        Returns non key / non unique fields.
         projector is used for projecting attr values into required form.
         preserve_order alows preserving the attr declaration top to bottom order.
         """
+
+        def keys(projector):
+            return cls.get_key_fields(projector) or cls.get_index_fields(projector)
+
         if preserve_order:
-            keys = cls.get_key_fields(str)
             return _apply(
                 projector,
                 (
                     field for field in cls.get_values(lambda x: x)
-                    if str(field) not in keys
+                    if str(field) not in keys(str)
                 ),
             )
-        key_fields = set(cls.get_key_fields(projector))
+        key_fields = set(keys(projector))
         all_fields = set(cls.get_values(projector))
         return all_fields - key_fields
 
@@ -127,7 +131,7 @@ class MetaData(metaclass=__meta):
         Returns table name.
         """
         return cls.__name__
-    
+
     @classmethod
     def get_alias(cls) -> str:
         """
