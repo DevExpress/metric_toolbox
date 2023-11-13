@@ -54,7 +54,9 @@ class QueryField(NamedTuple):
         col2 type
     );
 
-    INSERT INTO target_table
+    INSERT INTO target_table(
+        target_col
+    )
     SELECT  source_col AS target_col
     FROM    source_table
     """
@@ -63,6 +65,9 @@ class QueryField(NamedTuple):
     type: Union[TEXT, INTEGER, REAL, NUMERIC]
 
     def __str__(self) -> str:
+        return self.target_name
+
+    def as_def(self) -> str:
         return f'{self.target_name} {self.type}'
 
     def as_alias(self) -> str:

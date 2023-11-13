@@ -7,6 +7,21 @@ from toolbox.sql.crud_queries.delete import DropTableQuery
 import toolbox.logger as Logger
 
 
+class FieldForms:
+    def __init__(self, fields: Sequence[QueryField]) -> None:
+        if not fields:
+            self.defs = ''
+            self.names = ''
+            self.aliases= ''
+            return
+
+        offset = '\n\t'
+        separator = ',\n\t'
+        self.defs = offset + separator.join(val.as_def() for val in fields)
+        self.names = offset + separator.join(str(val) for val in fields)
+        self.aliases = offset + separator.join(val.as_alias() for val in fields)
+
+
 class SqliteCreateTableQuery:
 
     def __init__(
@@ -40,9 +55,9 @@ class SqliteCreateTableQuery:
         return str(DropTableQuery(self._target_table_name)) if self.recreate() else ''
 
     def __create(self):
-        keys, _, pk, without_rowid = self._get_keys()
-        values, _ = self._get_values()
-        return f'CREATE TABLE IF NOT EXISTS {self._target_table_name} ({keys}{values}{pk}){without_rowid};'
+        keys, pk, without_rowid = self._get_keys()
+        values = self._get_values()
+        return f'CREATE TABLE IF NOT EXISTS {self._target_table_name} ({keys.defs}{values.defs}{pk}){without_rowid};'
 
     def keys(self, projector: Callable[[QueryField], Any] = str):
         return [projector(x) for x in self._keys]
@@ -54,30 +69,28 @@ class SqliteCreateTableQuery:
         return self._recreate
 
     def _get_keys(self):
+        forms = self.__to_field_forms(self._keys)
         if not self._keys:
-            return '', '', '\n', ''
-        keys, keys_aliases = self.__get_fields_aliases(self._keys)
-        keys += ','
+            return forms, '\n', ''
+
+        forms.defs += ','
         if self._values:
-            keys_aliases += ','
+            forms.names += ','
+            forms.aliases += ','
 
         fields = ',\n\t\t'.join(str(val.target_name) for val in self._keys)
         pk = f"\n\tPRIMARY KEY (\n\t\t{fields}\n\t)\n"
 
-        return keys, keys_aliases, pk, ' WITHOUT ROWID'
+        return forms, pk, ' WITHOUT ROWID'
 
-    def _get_values(self):
-        if not self._values:
-            return '', ''
-        values, values_aliases = self.__get_fields_aliases(self._values)
-        if self._keys:
-            values += ','
-        return values, values_aliases
+    def _get_values(self) -> FieldForms:
+        forms = self.__to_field_forms(self._values)
+        if self._values and self._keys:
+            forms.defs += ','
+        return forms
 
-    def __get_fields_aliases(self, fields: Sequence[QueryField]):
-        flds = '\n\t' + ',\n\t'.join(str(val) for val in fields)
-        aliases = '\n\t' + ',\n\t'.join(val.as_alias() for val in fields)
-        return flds, aliases
+    def __to_field_forms(self, fields: Sequence[QueryField]) -> FieldForms:
+        return FieldForms(fields)
 
     def get_parameters(self) -> None:
         pass
@@ -117,11 +130,11 @@ class SqliteCreateTableFromTableQuery(SqliteCreateTableQuery):
         return super().get_script(extender)
 
     def __upsert(self):
-        _, key_alias, *_ = self._get_keys()
-        _, values_aliases = self._get_values()
+        keys, *_ = self._get_keys()
+        values = self._get_values()
         return multiline_non_empty(
-            f'INSERT INTO {self._target_table_name}',
-            f'SELECT DISTINCT {key_alias}{values_aliases}',
+            f'INSERT INTO {self._target_table_name}({keys.names}{values.names}\n)',
+            f'SELECT DISTINCT {keys.aliases}{values.aliases}',
             f'FROM {self._source_table_or_subquery}',
             self._where_keys_not_null(),
             self._on_conflict(),

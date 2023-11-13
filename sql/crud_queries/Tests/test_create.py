@@ -40,7 +40,10 @@ CREATE TABLE IF NOT EXISTS target (
 ) WITHOUT ROWID;
 CREATE TRIGGER ...
 
-INSERT INTO target
+INSERT INTO target(
+	id_target,
+	name_target
+)
 SELECT DISTINCT 
 	id AS id_target,
 	name AS name_target
@@ -85,7 +88,11 @@ WHERE id IS NOT NULL'''
 ) WITHOUT ROWID;
 CREATE TRIGGER ...
 
-INSERT INTO target
+INSERT INTO target(
+	id_target,
+	name_target,
+	uid_target
+)
 SELECT DISTINCT 
 	id AS id_target,
 	name AS name_target,

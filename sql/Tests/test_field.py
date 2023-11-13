@@ -1,15 +1,19 @@
 import pytest
 from toolbox.sql.field import Field, QueryField, NUMERIC, TEXT
 
-
 def test_query_field_str():
-    assert str(
-        QueryField(
-            source_name='source_name',
-            target_name='target_name',
-            type=TEXT,
-        )
-    ) == f'target_name {TEXT}'
+    assert str(QueryField(
+        source_name='source_name',
+        target_name='target_name',
+        type=TEXT,
+    )) == f'target_name'
+
+def test_query_field_def():
+    assert QueryField(
+        source_name='source_name',
+        target_name='target_name',
+        type=TEXT,
+    ).as_def() == f'target_name {TEXT}'
 
 
 def test_query_field_as_alias():
