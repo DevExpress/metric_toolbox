@@ -6,6 +6,7 @@ from toolbox.sql.generators.decorators import (
     exclude_filter,
     null_only,
     not_null_only,
+    not_null,
 )
 
 
@@ -63,7 +64,7 @@ def generate_not_between_filter(
     return f'{col} NOT {between(values, values_converter)}'
 
 
-@include_filter
+@not_null
 def generate_right_halfopen_interval_filter(
     *,
     col: str,
@@ -111,7 +112,7 @@ def generate_not_equals_filter(
     return ne(col, value_converter(value))
 
 
-@include_filter
+@not_null
 def generate_less_equals_filter(
     *,
     col: str,

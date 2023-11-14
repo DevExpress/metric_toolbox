@@ -2,6 +2,7 @@ from collections.abc import Iterable, Callable
 from wrapt import decorator
 from toolbox.sql.generators import NULL_FILTER_VALUE
 
+
 @decorator
 def null_only(
     base_filter: Callable[..., str],
@@ -13,6 +14,7 @@ def null_only(
         kwargs,
         __generate_is_null_filter(kwargs),
     )
+
 
 @decorator
 def not_null_only(
@@ -28,22 +30,23 @@ def not_null_only(
 
 
 @decorator
+def not_null(
+    base_filter: Callable[..., str],
+    instance,
+    args: Iterable,
+    kwargs: dict,
+):
+    return __include_filter(base_filter, kwargs, True)
+
+
+@decorator
 def include_filter(
     base_filter: Callable[..., str],
     instance,
     args: Iterable,
     kwargs: dict,
 ):
-    values = __get_real_values(kwargs)
-    if values is not None:
-        if __should_generate_null_filter(kwargs):
-            return __generate_is_null_or_base_filter(
-                kwargs,
-                base_filter,
-            )
-
-        return __generate_filter(kwargs, base_filter(**kwargs))
-    return ''
+    return __include_filter(base_filter, kwargs)
 
 
 @decorator
@@ -53,7 +56,6 @@ def exclude_filter(
     args: Iterable,
     kwargs: dict,
 ):
-
     if __should_generate_null_filter(kwargs):
         return __generate_is_not_null_and_base_filter(
             kwargs,
@@ -64,6 +66,29 @@ def exclude_filter(
         kwargs,
         base_filter,
     )
+
+
+def __include_filter(
+    base_filter: Callable[..., str],
+    kwargs: dict,
+    not_null: bool = False,
+):
+    values = __get_real_values(kwargs)
+    if values is not None:
+        if __should_generate_null_filter(kwargs):
+            return __generate_is_null_or_base_filter(
+                kwargs,
+                base_filter,
+            )
+
+        if not_null:
+            return __generate_is_not_null_and_base_filter(
+                kwargs,
+                base_filter,
+            )
+
+        return __generate_filter(kwargs, base_filter(**kwargs))
+    return ''
 
 
 def __generate_is_null_filter(kwargs: dict):

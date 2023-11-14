@@ -283,6 +283,7 @@ def between_filter_cases(convert, prefix='WHERE'):
         ),
     ]
 
+
 def equals_filter_cases(convert, prefix='WHERE'):
     convert = convert or to_quoted_string
     return [
@@ -296,15 +297,38 @@ def equals_filter_cases(convert, prefix='WHERE'):
         ),
     ]
 
+
 def less_equals_filter_cases(convert, prefix='WHERE'):
     convert = convert or to_quoted_string
     return [
         (
             MockFilterParameterNode(include=True, value=1),
-            prefix + ' {field} <= ' + f'{convert(1)}'
+            prefix + ' ({field} IS NOT NULL AND {field} <= ' + f'{convert(1)})'
         ),
         (
             MockFilterParameterNode(include=False, value=1),
             prefix + ' ({field} IS NULL OR {field} > ' + f'{convert(1)})'
+        ),
+        (
+            MockFilterParameterNode(include=True, value=NULL_FILTER_VALUE),
+            prefix + ' {field} IS NULL',
+        ),
+        (
+            MockFilterParameterNode(include=False, value=NULL_FILTER_VALUE),
+            prefix + ' {field} IS NOT NULL',
+        ),
+    ]
+
+
+def right_half_open_interval_filter_cases(convert, prefix='WHERE'):
+    convert = convert or to_quoted_string
+    return [
+        (
+            MockFilterParameterNode(include=True, values=[1, 2]),
+            prefix + ' ({field} IS NOT NULL AND' + f' {convert(1)} ' +'<= {field} AND {field} <' + f' {convert(2)})'
+        ),
+        (
+            MockFilterParameterNode(include=False, values=[1, 2]),
+            prefix + ' ({field} IS NULL OR ('+ f'{convert(1)} ' + '> {field} AND {field} >=' + f' {convert(2)}))'
         ),
     ]

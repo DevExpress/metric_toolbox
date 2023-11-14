@@ -404,7 +404,7 @@ def test_generate_not_between_filter(
             ['p1', 'p2'],
             'WHERE',
             to_quoted_string,
-            "WHERE 'p1' <= col AND col < 'p2'",
+            "WHERE (col IS NOT NULL AND 'p1' <= col AND col < 'p2')",
         ),
         (
             'col',
@@ -418,7 +418,7 @@ def test_generate_not_between_filter(
             [1, 2],
             'AND',
             str,
-            'AND 1 <= col AND col < 2',
+            'AND (col IS NOT NULL AND 1 <= col AND col < 2)',
         ),
     ]
 )
@@ -578,7 +578,7 @@ def test_not_equals_filter(
             0,
             'AND',
             lambda x: x,
-            'AND col <= 0',
+            'AND (col IS NOT NULL AND col <= 0)',
         ),
         (
             'col',
@@ -592,7 +592,7 @@ def test_not_equals_filter(
             1,
             'WHERE',
             to_quoted_string,
-            "WHERE col <= '1'",
+            "WHERE (col IS NOT NULL AND col <= '1')",
         ),
     )
 )

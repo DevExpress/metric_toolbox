@@ -76,6 +76,9 @@ class SqlFilterClauseFromFilterParametersGeneratorFactory:
             return SqlFilterClauseGenerator.generate_is_null_filter
         return SqlFilterClauseGenerator.generate_is_not_null_filter
 
+    def get_not_null_filter_generator(positive: SupportsBool, /):
+        return SqlFilterClauseFromFilterParametersGeneratorFactory.get_null_filter_generator(not positive)
+
     def get_less_equals_filter_generator(positive: SupportsBool, /):
         if positive:
             return SqlFilterClauseGenerator.generate_less_equals_filter
