@@ -7,6 +7,7 @@ from toolbox.sql.generators.decorators import (
     null_only,
     not_null_only,
     not_null,
+    not_null_exclude,
 )
 
 
@@ -123,7 +124,7 @@ def generate_less_equals_filter(
     return le(col, value_converter(value))
 
 
-@exclude_filter
+@not_null_exclude
 def generate_not_less_equals_filter(
     *,
     col: str,
@@ -132,6 +133,28 @@ def generate_not_less_equals_filter(
     **kwargs,
 ):
     return gt(col, value_converter(value))
+
+
+@not_null
+def generate_less_filter(
+    *,
+    col: str,
+    value: Any,
+    value_converter: Callable[[Any], str] = to_quoted_string,
+    **kwargs,
+):
+    return lt(col, value_converter(value))
+
+
+@not_null_exclude
+def generate_not_less_filter(
+    *,
+    col: str,
+    value: Any,
+    value_converter: Callable[[Any], str] = to_quoted_string,
+    **kwargs,
+):
+    return ge(col, value_converter(value))
 
 
 @not_null_only

@@ -1,7 +1,8 @@
 from collections.abc import Collection
 from typing import Protocol, Any, runtime_checkable
-import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerator
 from wrapt import decorator
+import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerator
+
 
 
 class BaseNode(Protocol):
@@ -83,3 +84,8 @@ class SqlFilterClauseFromFilterParametersGeneratorFactory:
         if positive:
             return SqlFilterClauseGenerator.generate_less_equals_filter
         return SqlFilterClauseGenerator.generate_not_less_equals_filter
+
+    def get_less_filter_generator(positive: SupportsBool, /):
+        if positive:
+            return SqlFilterClauseGenerator.generate_less_filter
+        return SqlFilterClauseGenerator.generate_not_less_filter

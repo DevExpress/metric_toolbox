@@ -40,6 +40,16 @@ def not_null(
 
 
 @decorator
+def not_null_exclude(
+    base_filter: Callable[..., str],
+    instance,
+    args: Iterable,
+    kwargs: dict,
+):
+    return __exclude_filter(base_filter, kwargs, True)
+
+
+@decorator
 def include_filter(
     base_filter: Callable[..., str],
     instance,
@@ -56,16 +66,7 @@ def exclude_filter(
     args: Iterable,
     kwargs: dict,
 ):
-    if __should_generate_null_filter(kwargs):
-        return __generate_is_not_null_and_base_filter(
-            kwargs,
-            base_filter,
-        )
-
-    return __generate_is_null_or_base_filter(
-        kwargs,
-        base_filter,
-    )
+    return __exclude_filter(base_filter, kwargs)
 
 
 def __include_filter(
@@ -89,6 +90,23 @@ def __include_filter(
 
         return __generate_filter(kwargs, base_filter(**kwargs))
     return ''
+
+
+def __exclude_filter(
+    base_filter: Callable[..., str],
+    kwargs: dict,
+    not_null: bool = False,
+):
+    if __should_generate_null_filter(kwargs) or not_null:
+        return __generate_is_not_null_and_base_filter(
+            kwargs,
+            base_filter,
+        )
+
+    return __generate_is_null_or_base_filter(
+        kwargs,
+        base_filter,
+    )
 
 
 def __generate_is_null_filter(kwargs: dict):

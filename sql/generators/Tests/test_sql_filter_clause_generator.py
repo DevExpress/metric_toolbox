@@ -618,7 +618,7 @@ def test_less_equals_filter(
             0,
             'AND',
             lambda x: x,
-            'AND (col IS NULL OR col > 0)',
+            'AND (col IS NOT NULL AND col > 0)',
         ),
         (
             'col',
@@ -632,7 +632,7 @@ def test_less_equals_filter(
             1,
             'WHERE',
             to_quoted_string,
-            "WHERE (col IS NULL OR col > '1')",
+            "WHERE (col IS NOT NULL AND col > '1')",
         ),
     )
 )
@@ -644,6 +644,86 @@ def test_not_less_equals_filter(
     output: str,
 ):
     assert SqlFilterClauseGenerator.generate_not_less_equals_filter(
+        col=col,
+        value=value,
+        filter_prefix=prefix,
+        value_converter=converter,
+    ) == output
+
+
+@pytest.mark.parametrize(
+    'col, value, prefix, converter, output', (
+        (
+            'col',
+            0,
+            'AND',
+            lambda x: x,
+            'AND (col IS NOT NULL AND col < 0)',
+        ),
+        (
+            'col',
+            NULL_FILTER_VALUE,
+            'AND',
+            lambda x: x,
+            'AND col IS NULL',
+        ),
+        (
+            'col',
+            1,
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NOT NULL AND col < '1')",
+        ),
+    )
+)
+def test_less_filter(
+    col: str,
+    value: Any,
+    prefix: str,
+    converter: Callable[[Any], str],
+    output: str,
+):
+    assert SqlFilterClauseGenerator.generate_less_filter(
+        col=col,
+        value=value,
+        filter_prefix=prefix,
+        value_converter=converter,
+    ) == output
+
+
+@pytest.mark.parametrize(
+    'col, value, prefix, converter, output', (
+        (
+            'col',
+            0,
+            'AND',
+            lambda x: x,
+            'AND (col IS NOT NULL AND col >= 0)',
+        ),
+        (
+            'col',
+            NULL_FILTER_VALUE,
+            'AND',
+            lambda x: x,
+            'AND col IS NOT NULL',
+        ),
+        (
+            'col',
+            1,
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NOT NULL AND col >= '1')",
+        ),
+    )
+)
+def test_not_less_filter(
+    col: str,
+    value: Any,
+    prefix: str,
+    converter: Callable[[Any], str],
+    output: str,
+):
+    assert SqlFilterClauseGenerator.generate_not_less_filter(
         col=col,
         value=value,
         filter_prefix=prefix,
