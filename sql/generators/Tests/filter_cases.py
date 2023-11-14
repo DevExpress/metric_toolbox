@@ -193,7 +193,7 @@ def double_in_filter_cases(convert, prefix='WHERE'):
     ]
 
 
-def single_like_filter_cases():
+def single_like_filter_cases(convert=None, prefix=None):
     return [
         (
             None,
