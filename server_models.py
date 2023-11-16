@@ -1,9 +1,10 @@
 from typing import Any, Generic, TypeVar
 from pydantic.fields import FieldInfo
 from pydantic.generics import GenericModel
+from toolbox.sql.generators import null_filter_type, in_, notin, eq, ne
 
 
-T = TypeVar('T', int, str, bool, float)
+T = TypeVar('T', int, str, bool, float, null_filter_type)
 
 
 class ServerModel(GenericModel):
@@ -23,8 +24,8 @@ class ServerModel(GenericModel):
             hasValues = hasattr(val, 'values')
             fi: FieldInfo = self.__fields__[field_name].field_info
             if val.include:
-                return fi.extra.get('positive_filter_op', 'in' if hasValues else '=')
-            return fi.extra.get('negative_filter_op', 'notin' if hasValues else '!=')
+                return fi.extra.get('positive_filter_op', in_ if hasValues else eq)
+            return fi.extra.get('negative_filter_op', notin if hasValues else ne)
         raise NotImplementedError
 
 

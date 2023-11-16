@@ -444,7 +444,7 @@ def test_generate_right_half_open_interval_filter(
             [],
             'WHERE',
             str,
-            'WHERE col IS NULL',
+            'WHERE col IS NOT NULL',
         ),
         (
             'col',
@@ -458,32 +458,32 @@ def test_generate_right_half_open_interval_filter(
             ['p1', 'p2'],
             'WHERE',
             to_quoted_string,
-            "WHERE (col IS NULL OR ('p1' > col AND col >= 'p2'))",
+            "WHERE (col IS NOT NULL AND 'p1' > col AND col >= 'p2')",
+        ),
+        (
+            'col',
+            ['p1', 'p2', NULL_FILTER_VALUE],
+            'WHERE',
+            to_quoted_string,
+            "WHERE (col IS NOT NULL AND 'p1' > col AND col >= 'p2')",
         ),
         (
             'col',
             [1, 2],
             'AND',
             str,
-            'AND (col IS NULL OR (1 > col AND col >= 2))',
-        ),
-        (
-            'col',
-            [1, 2, NULL_FILTER_VALUE],
-            'AND',
-            str,
             'AND (col IS NOT NULL AND 1 > col AND col >= 2)',
         ),
     ]
 )
-def test_generate_exclude_right_half_open_interval_filter(
+def test_generate_not_right_halfopen_interval_filter(
     col: str,
     values: list[str],
     prefix: str,
     converter: Callable[[Any], str],
     output: str,
 ):
-    assert SqlFilterClauseGenerator.generate_exclude_right_halfopen_interval_filter(
+    assert SqlFilterClauseGenerator.generate_not_right_halfopen_interval_filter(
         col=col,
         values=values,
         filter_prefix=prefix,

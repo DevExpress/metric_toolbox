@@ -1,8 +1,8 @@
 from collections.abc import Collection
 from typing import Protocol, Any, runtime_checkable
 from wrapt import decorator
+from toolbox.sql.generators.filter_operations import FilterOp
 import toolbox.sql.generators.filter_clause_generator as SqlFilterClauseGenerator
-
 
 
 class BaseNode(Protocol):
@@ -16,7 +16,7 @@ class BaseNode(Protocol):
     def get_append_operator(self) -> str:
         ...
 
-    def get_filter_op(self, field_name) -> str:
+    def get_filter_op(self, field_name) -> FilterOp:
         ...
 
 
@@ -65,7 +65,7 @@ class SqlFilterClauseFromFilterParametersGeneratorFactory:
     def get_right_halfopen_interval_filter_generator(positive: SupportsBool, /):
         if positive:
             return SqlFilterClauseGenerator.generate_right_halfopen_interval_filter
-        return SqlFilterClauseGenerator.generate_exclude_right_halfopen_interval_filter
+        return SqlFilterClauseGenerator.generate_not_right_halfopen_interval_filter
 
     def get_equals_filter_generator(positive: SupportsBool, /):
         if positive:

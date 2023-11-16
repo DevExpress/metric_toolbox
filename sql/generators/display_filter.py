@@ -10,6 +10,7 @@ from toolbox.sql.generators.filter_clause_generator_factory import (
     BaseNode,
     FilterParametersNode,
     FilterParameterNode,
+    FilterOp,
 )
 
 
@@ -78,12 +79,16 @@ def __generate_display_filter(
                     if not filter:
                         continue
                 case FilterParameterNode():
-                    display_value = display_values_store.get_display_value(
+                    if filter_node.value == NULL_FILTER_VALUE:
+                        filter = __generate_isnull_fitler(field_alias, None, '=' if filter_node else  '!=', None)
+                    else:
+                        display_value = display_values_store.get_display_value(
                         field=field_name,
                         alias=field_alias,
                         value=filter_node.value,
                     )
-                    filter = [field_alias, node.get_filter_op(field_name), display_value]
+                        filter_op = node.get_filter_op(field_name)
+                        filter = [field_alias, str(filter_op), filter_op(display_value)]
 
                 case _:
                     filter = __generate_display_filter(node=filter_node)
@@ -97,7 +102,7 @@ def __generate_display_filter(
 def __generate_filter_from_filter_parameters(
     field: str,
     alias: str,
-    filter_op: str,
+    filter_op: FilterOp,
     filter_node: FilterParametersNode,
     display_values_store: DisplayValuesStore,
 ):
@@ -113,8 +118,14 @@ def __generate_filter_from_filter_parameters(
         values=values,
         display_values_store=display_values_store,
     )
-
-    values_filter = [alias, filter_op, display_values] if display_values else None
+    values_filter= None
+    if display_values:
+        value = display_values_store.get_display_value(
+            field=field,
+            alias=alias,
+            value=filter_op(display_values)
+        )
+        values_filter = [alias, str(filter_op), value]
 
     if filter_node.include:
         if values_contains_null:

@@ -78,8 +78,8 @@ def generate_right_halfopen_interval_filter(
     return parenthesize_if_orfilter(kwargs, filter)
 
 
-@exclude_filter
-def generate_exclude_right_halfopen_interval_filter(
+@not_null_exclude
+def generate_not_right_halfopen_interval_filter(
     *,
     col: str,
     values: Iterable,

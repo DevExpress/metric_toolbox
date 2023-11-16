@@ -344,11 +344,11 @@ def right_half_open_interval_filter_cases(convert, prefix='WHERE'):
     convert = convert or to_quoted_string
     return [
         (
-            MockFilterParameterNode(include=True, values=[1, 2]),
+            MockFilterParametersNode(include=True, values=[1, 2]),
             prefix + ' ({field} IS NOT NULL AND' + f' {convert(1)} ' +'<= {field} AND {field} <' + f' {convert(2)})'
         ),
         (
-            MockFilterParameterNode(include=False, values=[1, 2]),
-            prefix + ' ({field} IS NOT NULL AND '+ f'{convert(1)} ' + '> {field} AND {field} >=' + f' {convert(2)})'
+            MockFilterParametersNode(include=False, values=[1, 2]),
+            prefix + ' ({field} IS NOT NULL AND ' + f'{convert(1)} ' + '> {field} AND {field} >=' + f' {convert(2)})'
         ),
     ]

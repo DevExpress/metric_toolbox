@@ -1,16 +1,16 @@
 import pytest
-import toolbox.sql.generators.display_filter as DisplayFilterGenerator
 from pandas import DataFrame
 from pydantic import Field
 from toolbox.sql.meta_data import KnotMeta
 from toolbox.sql.generators.display_filter import QueryParams
 from toolbox.sql.query_executors.sql_query_executor import SqlQueryExecutor
-from toolbox.sql.generators import NULL_FILTER_VALUE
+from toolbox.sql.generators import NULL_FILTER_VALUE, ge, lt, right_half_open, not_right_half_open, between, notbetwen
 from toolbox.server_models import (
     ServerModel,
     FilterParameterNode,
     FilterParametersNode,
 )
+import toolbox.sql.generators.display_filter as DisplayFilterGenerator
 
 
 class Connection:
@@ -25,6 +25,9 @@ class MockFilterNode(ServerModel):
     tribe_ids: FilterParametersNode | None = Field(alias='Tribes')
     tent_ids: FilterParametersNode | None = Field(alias='Tents')
     platforms_ids: FilterParametersNode | None = Field(alias='Platforms')
+    closed_for: FilterParameterNode | None = Field(alias='Closed for', positive_filter_op=ge, negative_filter_op=lt)
+    resolution_time: FilterParametersNode | None = Field(alias='Resolution time', positive_filter_op=right_half_open, negative_filter_op=not_right_half_open)
+    closed_between: FilterParametersNode | None = Field(alias='Closed', positive_filter_op=between, negative_filter_op=notbetwen)
 
 class DisplayValuesStore:
 
@@ -53,9 +56,10 @@ class DisplayValuesStore:
 
     @staticmethod
     def get_display_value(field: str, alias: str, value) -> str:
-        if field == 'is_private':
-            return value
-        return ''
+        return {
+            'closed_for': f'{value} day(s)',
+            'resolution_time': f'{value} hours(s)',
+        }.get(field, value)
 
 
 class MockSqlQueryExecutor(SqlQueryExecutor):
@@ -78,27 +82,35 @@ class MockSqlQueryExecutor(SqlQueryExecutor):
             MockFilterNode(**{
                 'Privacy': FilterParameterNode(include=True, value=1),
                 'Tribes': FilterParametersNode(include=True, values=['xaml']),
-                'Tents': FilterParametersNode(include=False, values=['win'],),
+                'Tents': FilterParametersNode(include=True, values=['win'],),
+                'Closed for': FilterParameterNode(include=True, value=12),
+                'Resolution time': FilterParametersNode(include=True, values=[1, 3],),
+                'Closed': FilterParametersNode(include=True, values=['2023-01-01', '2023-02-01'],),
             }),
-            [
-                ['Privacy', '=', 1],
+            [   ['Privacy', '=', 1],
                 'and',
                 ['Tribes', 'in', ['XAML United Team']],
                 'and',
-                [
-                    ['Tents', '=', 'NULL'], 'or',
-                    ['Tents', 'notin', ['WinForms']]
-                ],
+                ['Tents', 'in', ['WinForms']],
+                'and',
+                ['Closed for', '>=', '12 day(s)'],
+                'and',
+                ['Resolution time', '<=<', '[ 1, 3 ) hours(s)'],
+                'and',
+                ['Closed', 'between', ['2023-01-01', '2023-02-01']],
             ],
         ),
         (
             MockFilterNode(**{
-                'Privacy': FilterParameterNode(include=True, value=0),
+                'Privacy': FilterParameterNode(include=False, value=1),
                 'Tribes': FilterParametersNode(include=False, values=['xaml']),
-                'Tents': FilterParametersNode(include=False, values=['win']),
+                'Tents': FilterParametersNode(include=False, values=['win'],),
+                'Closed for': FilterParameterNode(include=False, value=12),
+                'Resolution time': FilterParametersNode(include=False, values=[1, 3],),
+                'Closed': FilterParametersNode(include=False, values=['2023-01-01', '2023-02-01'],),
             }),
             [
-                ['Privacy', '=', 0],
+                ['Privacy', '!=', 1],
                 'and',
                 [
                     ['Tribes', '=', 'NULL'], 'or',
@@ -108,43 +120,135 @@ class MockSqlQueryExecutor(SqlQueryExecutor):
                 [
                     ['Tents', '=', 'NULL'], 'or',
                     ['Tents', 'notin', ['WinForms']]
+                ],
+                'and',
+                ['Closed for', '<', '12 day(s)'],
+                'and',
+                [
+                    ['Resolution time', '=', 'NULL'], 'or',
+                    ['Resolution time', '>=>', '( 1, 3 ] hours(s)']
+                ],
+                'and',
+                [
+                    ['Closed', '=', 'NULL'], 'or',
+                    ['Closed', 'notbetween', ['2023-01-01', '2023-02-01']],
                 ]
-            ]
+            ],
         ),
         (
             MockFilterNode(**{
                 'Privacy': FilterParameterNode(include=True, value=0),
-                'Platforms': FilterParametersNode(include=True, values=[NULL_FILTER_VALUE]),
-            }),
-            [
-                ['Privacy', '=', 0],
-                'and',
-                ['Platforms', '=', 'NULL'],
-            ]
-        ),
-        (
-            MockFilterNode(**{
-                'Privacy': FilterParameterNode(include=True, value=0),
-                'Platforms': FilterParametersNode(include=False, values=[NULL_FILTER_VALUE]),
-            }),
-            [
-                ['Privacy', '=', 0],
-                'and',
-                ['Platforms', '!=', 'NULL'],
-            ]
-        ),
-        (     MockFilterNode(**{
-                'Privacy': FilterParameterNode(include=True, value=0),
-                'Tribes': FilterParametersNode(include=False, values=['xaml', NULL_FILTER_VALUE]),
+                'Tribes': FilterParametersNode(include=False, values=['xaml']),
+                'Tents': FilterParametersNode(include=True, values=['win']),
+                'Closed for': FilterParameterNode(include=False, value=12),
+                'Resolution time': FilterParametersNode(include=True, values=[1, 3],),
+                'Closed': FilterParametersNode(include=False, values=['2023-01-01', '2023-02-01'],),
             }),
             [
                 ['Privacy', '=', 0],
                 'and',
                 [
+                    ['Tribes', '=', 'NULL'], 'or',
+                    ['Tribes', 'notin', ['XAML United Team']]
+                ],
+                'and',
+                ['Tents', 'in', ['WinForms']],
+                'and',
+                ['Closed for', '<', '12 day(s)'],
+                'and',
+                ['Resolution time', '<=<', '[ 1, 3 ) hours(s)'],
+                'and',
+                [
+                    ['Closed', '=', 'NULL'], 'or',
+                    ['Closed', 'notbetween', ['2023-01-01', '2023-02-01']],
+                ]
+            ]
+        ),
+        (
+            MockFilterNode(**{
+                'Privacy': FilterParameterNode(include=True, value=NULL_FILTER_VALUE),
+                'Platforms': FilterParametersNode(include=True, values=[NULL_FILTER_VALUE]),
+                'Closed for': FilterParameterNode(include=True, value=NULL_FILTER_VALUE),
+                'Resolution time': FilterParametersNode(include=True, values=[1, 3, NULL_FILTER_VALUE],),
+                'Closed': FilterParametersNode(include=True, values=['2023-01-01', '2023-02-01', NULL_FILTER_VALUE],),
+            }),
+            [
+                ['Privacy', '=', 'NULL'],
+                'and',
+                ['Platforms', '=', 'NULL'],
+                'and',
+                ['Closed for', '=', 'NULL'],
+                'and',
+                [
+                    ['Resolution time', '=', 'NULL'], 'or',
+                    ['Resolution time', '<=<', '[ 1, 3 ) hours(s)']
+                ],
+                'and',
+                [
+                    ['Closed', '=','NULL'], 'or',
+                    ['Closed', 'between', ['2023-01-01', '2023-02-01']]
+                ],
+            ]
+        ),
+        (
+            MockFilterNode(**{
+                'Privacy': FilterParameterNode(include=False, value=NULL_FILTER_VALUE),
+                'Platforms': FilterParametersNode(include=False, values=[NULL_FILTER_VALUE]),
+                'Closed for': FilterParameterNode(include=False, value=NULL_FILTER_VALUE),
+                'Resolution time': FilterParametersNode(include=False, values=[1, 3, NULL_FILTER_VALUE],),
+                'Closed': FilterParametersNode(include=False, values=['2023-01-01', '2023-02-01', NULL_FILTER_VALUE],),
+            }),
+            [
+                ['Privacy', '!=', 'NULL'],
+                'and',
+                ['Platforms', '!=', 'NULL'],
+                'and',
+                ['Closed for', '!=', 'NULL'],
+                'and',
+                [
+                    ['Resolution time', '!=', 'NULL'], 'and',
+                    ['Resolution time', '>=>', '( 1, 3 ] hours(s)']
+                ],
+                'and',
+                [
+                    ['Closed', '!=','NULL'], 'and',
+                    ['Closed', 'notbetween', ['2023-01-01', '2023-02-01']]
+                ],
+            ]
+        ),
+        (
+            MockFilterNode(**{
+                'Tribes': FilterParametersNode(include=True, values=['xaml', NULL_FILTER_VALUE]),
+                'Tents': FilterParametersNode(include=True, values=['win', NULL_FILTER_VALUE],),
+            }),
+            [
+                [
+                    ['Tribes', '=', 'NULL'], 'or',
+                    ['Tribes', 'in', ['XAML United Team']]
+                ],
+                'and',
+                [
+                    ['Tents', '=', 'NULL'], 'or',
+                    ['Tents', 'in', ['WinForms']]
+                ],
+            ],
+        ),
+        (
+            MockFilterNode(**{
+                'Tribes': FilterParametersNode(include=False, values=['xaml', NULL_FILTER_VALUE]),
+                'Tents': FilterParametersNode(include=True, values=['win', NULL_FILTER_VALUE],),
+            }),
+            [
+                [
                     ['Tribes', '!=', 'NULL'], 'and',
                     ['Tribes', 'notin', ['XAML United Team']]
                 ],
-            ]
+                'and',
+                [
+                    ['Tents', '=', 'NULL'], 'or',
+                    ['Tents', 'in', ['WinForms']]
+                ],
+            ],
         ),
         (
             MockFilterNode(**{
