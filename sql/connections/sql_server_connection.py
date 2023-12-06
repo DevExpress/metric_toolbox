@@ -34,7 +34,6 @@ if os.environ.get('PRODUCTION', None):
         url=ConnectionParams().get_url(),
         #poolclass=NullPool,
         pool_reset_on_return=None,
-        fast_executemany=True,
     )
 
     @event.listens_for(_engine, 'reset')
