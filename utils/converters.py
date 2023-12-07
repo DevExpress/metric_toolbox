@@ -4,6 +4,7 @@ from collections.abc import Iterable, Callable
 from pathlib import Path
 from typing import Any
 from datetime import date, datetime
+from dateutil.parser import isoparse
 from pandas import DataFrame, read_json, to_datetime
 
 
@@ -109,6 +110,10 @@ class DateTimeToSqlString:
             date=datetime.strptime(dt, '%Y-%m-%dT%H:%M:%SZ'),
             separator='-',
         )
+
+
+def isostr_to_date(dt: str) -> datetime:
+    return isoparse(dt)
 
 
 def to_quoted_string(val) -> str:
