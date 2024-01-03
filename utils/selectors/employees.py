@@ -18,6 +18,7 @@ def _select(emp: dict) -> dict:
         'level': emp['details']['level'],
         'hiredAt': emp['details']['hiredAt'],
         'retiredAt': emp['details']['retiredAt'],
+        'isServiceUser': emp['isServiceUser'],
         'tents': emp['tents'],
         'roles': emp['details']['roles'],
     }
