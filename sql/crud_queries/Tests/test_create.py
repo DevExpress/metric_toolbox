@@ -48,7 +48,7 @@ SELECT DISTINCT
 	id AS id_target,
 	name AS name_target
 FROM source
-WHERE id IS NOT NULL'''
+WHERE id IS NOT NULL AND id != ""'''
             ),
         ),
                 (
@@ -98,7 +98,7 @@ SELECT DISTINCT
 	name AS name_target,
 	uid AS uid_target
 FROM source
-WHERE id IS NOT NULL
+WHERE id IS NOT NULL AND id != ""
 ON CONFLICT(id_target) DO UPDATE SET
 		name_target=excluded.name_target,
 		uid_target=excluded.uid_target'''

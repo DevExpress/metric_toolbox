@@ -143,7 +143,7 @@ class SqliteCreateTableFromTableQuery(SqliteCreateTableQuery):
     def _where_keys_not_null(self):
         keys = self.keys(lambda x: x.source_name) or self._unique_fields
         if keys:
-            filter = ' AND \n'.join(f'{key} IS NOT NULL' for key in keys)
+            filter = ' AND \n'.join(f'{key} IS NOT NULL AND {key} != ""' for key in keys)
             return 'WHERE ' + filter
         return ''
 
