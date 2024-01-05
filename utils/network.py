@@ -21,7 +21,7 @@ def get_data(
         status_code=resp.status_code,
         success_status_code=200,
     )
-    return resp.text
+    return resp.text.replace('":', '": ')
 
 
 def post_data(end_point: str, data: str):
