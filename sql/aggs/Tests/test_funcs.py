@@ -1,11 +1,13 @@
 import pytest
 from collections.abc import Callable
-from toolbox.sql.aggs.functions import Func, SUM, COUNT, COUNT_DISTINCT
+from toolbox.sql.aggs.functions import Func, SUM, MEDIAN, AVG, COUNT, COUNT_DISTINCT
 
 
 @pytest.mark.parametrize(
     'func, param, res', [
         (SUM, 'qwe', 'SUM(qwe)'),
+        (MEDIAN, 'qwe', 'MIN(median_qwe)'),
+        (AVG, 'qwe', 'AVG(qwe)'),
         (COUNT, 'qwe', 'COUNT(qwe)'),
         (COUNT_DISTINCT, 'qwe', 'COUNT(DISTINCT qwe)'),
     ]

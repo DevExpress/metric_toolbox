@@ -1,5 +1,5 @@
 from toolbox.sql.aggs.metrics import Metric
-from toolbox.sql.aggs.functions import SUM, COUNT, COUNT_DISTINCT, AVG
+from toolbox.sql.aggs.functions import SUM, COUNT, COUNT_DISTINCT, AVG, MEDIAN
 from toolbox.sql.aggs.groups import GroupBy, Window
 
 

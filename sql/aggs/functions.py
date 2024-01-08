@@ -18,7 +18,7 @@ class Func:
         param: Expression,
         *expressions: Expression,
         op: str = '',
-        iif_zero: Number = 0
+        iif_zero: Number = 0,
     ) -> None:
         self._param = param
         self.expressions = expressions or self._func(param)
@@ -61,9 +61,9 @@ class Func:
         def format(x: Expression):
             match x:
                 case str():
-                   return x
+                    return x
                 case Func():
-                   return x.over(window)
+                    return x.over(window)
             return f'{x} OVER ({window})'
 
         return self._as_str(
@@ -77,9 +77,7 @@ class Func:
 
 class DIV(Func):
 
-    def __init__(
-        self, dividee: Func | Expression, divider: Func | Expression
-    ) -> None:
+    def __init__(self, dividee: Func | Expression, divider: Func | Expression) -> None:
         self.dividee = dividee
         self.divider = divider
 
@@ -102,6 +100,16 @@ class SUM(Func):
         return Expr(f'SUM({param})'),
 
 
+class MEDIAN(Func):
+    def _func(self, param: Expression) -> Iterable[Expression]:
+        return Expr(f'MIN(median_{param})'),
+
+
+class AVG(Func):
+    def _func(self, param: Expression) -> Iterable[Expression]:
+        return Expr(f'AVG({param})'),
+
+
 class COUNT(Func):
 
     def _func(self, param: Expression) -> Iterable[Expression]:
@@ -116,12 +124,6 @@ class COUNT_DISTINCT(Func):
     def over(self, window: str) -> str:
         return (
             f'(DENSE_RANK() OVER ({window} ORDER BY {self._param}) + '
-            + f'DENSE_RANK() OVER ({window} ORDER BY {self._param} DESC) - ' +
-            f'SUM(IIF({self._param} IS NULL, 1, 0)) OVER ({window} ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) - 1)'
+            + f'DENSE_RANK() OVER ({window} ORDER BY {self._param} DESC) - '
+            + f'SUM(IIF({self._param} IS NULL, 1, 0)) OVER ({window} ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) - 1)'
         )
-
-
-class AVG(Func):
-
-    def _func(self, param: Expression) -> Iterable[Expression]:
-        return Expr(f'AVG({param})'),
