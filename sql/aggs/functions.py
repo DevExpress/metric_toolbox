@@ -102,7 +102,7 @@ class SUM(Func):
 
 class MEDIAN(Func):
     def _func(self, param: Expression) -> Iterable[Expression]:
-        return Expr(f'MIN({param})'),
+        return Expr(f'MIN(median_{param})'),
 
 
 class AVG(Func):

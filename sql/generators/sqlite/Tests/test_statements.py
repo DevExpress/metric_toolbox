@@ -1,5 +1,5 @@
 import pytest
-from toolbox.sql.generators.sqlite.statements import on_conflict, create_index
+from toolbox.sql.generators.sqlite.statements import on_conflict, create_index, with_median
 
 
 @pytest.mark.parametrize(
@@ -48,3 +48,31 @@ def test_create_index(tbl, cols, name, unique, res):
 )
 def test_on_conflict(key_cols, val_cols, res):
     assert on_conflict(key_cols, val_cols) == res
+
+
+@pytest.mark.parametrize(
+    'tbl, group_by, group_by_fld, fld, res', [
+        (
+            'tbl',
+            'group_by',
+            'group_by_fld',
+            'fld',
+            """(
+SELECT  *,
+    NTH_VALUE(fld, median) OVER (PARTITION BY group_by ORDER BY fld) AS median_fld
+    FROM    (   SELECT  group_by_fld,
+                        fld,
+                        ROUND(COUNT(fld) OVER (PARTITION BY group_by) / 2.) AS median
+                FROM    tbl
+            ) AS tbl
+) AS tbl_with_median""",
+        ),
+    ]
+)
+def test_with_median(tbl, group_by, group_by_fld, fld, res):
+    assert with_median(
+        tbl=tbl,
+        group_by=group_by,
+        group_by_fld=group_by_fld,
+        fld=fld,
+    ) == res
