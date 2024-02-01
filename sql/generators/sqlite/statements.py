@@ -29,7 +29,14 @@ def on_conflict(
     return 'ON CONFLICT DO NOTHING'
 
 
-def with_median(tbl: str, group_by: str, group_by_fld: str, fld: str) -> str:
+def with_median(
+    tbl: str,
+    group_by: str,
+    group_by_fld: str,
+    fld: str,
+    inner_tbl_alias: str = 'tbl',
+    outer_tbl_alias: str = 'tbl_with_median',
+) -> str:
     return f"""(
 SELECT  *,
     NTH_VALUE({fld}, median) OVER (PARTITION BY {group_by} ORDER BY {fld}) AS median_{fld}
@@ -37,5 +44,5 @@ SELECT  *,
                         {fld},
                         ROUND(COUNT({fld}) OVER (PARTITION BY {group_by}) / 2.) AS median
                 FROM    {tbl}
-            ) AS tbl
-) AS tbl_with_median"""
+            ) AS {inner_tbl_alias}
+) AS {outer_tbl_alias}"""
