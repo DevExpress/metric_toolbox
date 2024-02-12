@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from toolbox.utils.converters import JSON_to_object, Object_to_JSON, isostr_to_date
 
 
@@ -6,13 +6,14 @@ def _select(
     json: str,
     selector: Callable[[dict], dict],
     filter: Callable[[dict], dict],
-) -> str:
+    root_selector: Callable[[dict], dict] = lambda obj: obj['page'],
+) -> dict:
     json_obj = JSON_to_object.convert(json)
-    res = [selector(obj) for obj in json_obj['page'] if filter(obj)]
-    return Object_to_JSON.convert(res)
+    return [selector(obj) for obj in root_selector(json_obj) if filter(obj)]
 
 
 def select(emps_json: str, start: str) -> str:
+
     def selector(emp: dict) -> dict:
         return {
             'id': emp['id'],
@@ -36,8 +37,46 @@ def select(emps_json: str, start: str) -> str:
 
     start = isostr_to_date(start)
 
-    def filter(emp: dict) -> dict:
+    def filter(emp: dict) -> bool:
         retired_at = emp['details']['retiredAt']
         return retired_at is None or isostr_to_date(retired_at) > start
 
-    return _select(emps_json, selector, filter)
+    return Object_to_JSON.convert(_select(emps_json, selector, filter))
+
+
+def audit_select(
+    emps_audit_json: str,
+    filter_props: Iterable[str] = (
+        'Level',
+        'Tribe',
+        'Position',
+        'Location',
+        'Chapter',
+    )
+) -> str:
+
+    def selector(audit: dict) -> dict:
+        return {
+            'entityOid': audit['entityOid'],
+            'entityModified': audit['entityModified'],
+            'changedProperties': audit['changedProperties'],
+            'chapterId': audit['chapterId'],
+            'tribeId': audit['tribeId'],
+            'employeePositionId': audit['employeePositionId'],
+            'employeeLevelId': audit['employeeLevelId'],
+            'employeeLocationId': audit['employeeLocationId'],
+            'hiredAt': audit['hiredAt'],
+            'retiredAt': audit['retiredAt']
+        }
+
+    def filter(audit: dict) -> bool:
+        changed_properties: str = audit['changedProperties']
+        for prop in filter_props:
+            if prop in changed_properties:
+                return True
+        return False
+
+    def root_selector(audit: dict) -> dict:
+        return audit
+
+    return _select(emps_audit_json, selector, filter, root_selector)
