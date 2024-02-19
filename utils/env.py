@@ -34,6 +34,17 @@ def reset_recalculate_for_last_n_days():
     __reset_env_val(__recalc_for_last_days)
 
 
+__recalc_for_last_days_long = 'RECALCULATE_FOR_LAST_DAYS_LONG'
+
+
+def recalculate_for_last_n_days_long() -> int:
+    return __get_env_val(__recalc_for_last_days_long)
+
+
+def reset_recalculate_for_last_n_days_long():
+    __reset_env_val(__recalc_for_last_days_long)
+
+
 def __get_env_val(env: str):
     return int(os.environ.get(env, 0))
 
