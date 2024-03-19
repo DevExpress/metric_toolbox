@@ -23,7 +23,7 @@ def _get_or_create_cache():
 
 class CacheObject:
 
-    def get_underlying_cache(self):
+    def _get_cache(self):
         return _get_or_create_cache()
 
     def __init__(
@@ -35,7 +35,7 @@ class CacheObject:
         self.expire = expire
 
     def get(self, *args) -> Optional[str]:
-        return self.get_underlying_cache().get(key=self.__get_key(*args))
+        return self._get_cache().get(key=self.__get_key(*args))
 
     def get_df(self, *args, **kwargs) -> DataFrame:
         return JSON_to_DF.convert(json=self.get(*args), **kwargs)
@@ -44,10 +44,10 @@ class CacheObject:
         return JSON_to_object.convert(json_obj=self.get(*args), **kwargs)
 
     def __get_key(self, *args):
-        return self.get_underlying_cache().get_key(self.__base_key, *args)
+        return self._get_cache().get_key(self.__base_key, *args)
 
     def save(self, value: str, key: Iterable = ()) -> str:
-        self.get_underlying_cache().set(
+        self._get_cache().set(
             key=self.__get_key(*key),
             value=value,
             ex=self.expire,
