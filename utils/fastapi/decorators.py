@@ -3,6 +3,7 @@ import aiohttp
 import sys
 from cachetools import TTLCache
 from wrapt import decorator
+from typing import Protocol
 from collections.abc import Awaitable, Callable, Mapping
 from fastapi import status
 from fastapi.responses import Response as FastAPIResponse
@@ -11,7 +12,15 @@ from fastapi.responses import Response as FastAPIResponse
 __cache = TTLCache(sys.maxsize, ttl=1200)
 
 
-def with_authorization(auth_check: Callable[[aiohttp.ClientResponse], bool]):
+class AuthResponse(Protocol):
+
+    status: int
+
+    async def json():
+        pass
+
+
+def with_authorization(auth_check: Callable[[AuthResponse], bool]):
     """
     Accesses auth endpoint and invokes auth_check agains the response.
     Requires wrapped method to declare the access_token and response params.
@@ -22,7 +31,7 @@ def with_authorization(auth_check: Callable[[aiohttp.ClientResponse], bool]):
 
     @decorator
     async def authorization(
-        func,
+        func: Awaitable,
         instance,
         args,
         kwargs: Mapping,
@@ -35,7 +44,7 @@ def with_authorization(auth_check: Callable[[aiohttp.ClientResponse], bool]):
             __forbid_access(kwargs)
             return
 
-        async def next(response: aiohttp.ClientResponse):
+        async def next(response: AuthResponse):
             if auth_check(response):
                 return await func(*args, **kwargs)
             __forbid_access(kwargs)
