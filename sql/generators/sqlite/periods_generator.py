@@ -14,12 +14,13 @@ class PeriodsMeta(MetaData):
 async def get_group_by_periods_json():
     # format should contain a valid strftime string.
     # https://sqlite.org/lang_datefunc.html
-    # %Y-%Q is invalid, so we handle it.
+    # %Y-%Q and %Y-%H are invalid, so we handle them.
     return '''[
     { "name": "Day",            "format": "%Y-%m-%d" },
     { "name": "Week-Year",      "format": "%Y-%W" },
     { "name": "Month-Year",     "format": "%Y-%m" },
     { "name": "Quarter-Year",   "format": "%Y-%Q" },
+    { "name": "Half-Year",      "format": "%Y-%H" },
     { "name": "Year",           "format": "%Y" }
 ]
 '''
@@ -29,6 +30,7 @@ anchor_modifiers = {
         '%Y-%W': "'WEEKDAY 0', '-6 DAYS'",
         '%Y-%m': "'START OF MONTH'",
         '%Y-%Q': "'START OF MONTH'",
+        '%Y-%H': "'START OF MONTH'",
         '%Y': "'START OF YEAR'",
     }
 
@@ -39,6 +41,7 @@ def generate_group_by_period(format: str, field: str, modifier: str = '') -> str
         '%Y-%W': f"STRFTIME('%Y-%m-%d', {field}, {modifier})",
         '%Y-%m': f"STRFTIME('%Y-%m', {field}, {modifier})",
         '%Y-%Q': f"(STRFTIME('%Y', {field}, {modifier}) || -((STRFTIME('%m', {field}, {modifier}) + 2) / 3))",
+        '%Y-%H': f"(STRFTIME('%Y', {field}, {modifier}) || -((STRFTIME('%m', {field}, {modifier}) + 7) / 7))",
         '%Y': f"STRFTIME('%Y', {field}, {modifier})"
     }.get(format, f"STRFTIME('%Y-%m-%d', {field}, {modifier})")
 
@@ -56,6 +59,7 @@ async def generate_periods(
         '%Y-%W': "'+7 DAYS'",
         '%Y-%m': "'+1 MONTHS'",
         '%Y-%Q': "'+1 MONTHS'",
+        '%Y-%H': "'+1 MONTHS'",
         '%Y': "'+1 YEAR'",
     }[format]
 
