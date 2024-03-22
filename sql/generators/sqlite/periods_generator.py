@@ -21,29 +21,43 @@ async def get_group_by_periods_json():
     { "name": "Month-Year",     "format": "%Y-%m" },
     { "name": "Quarter-Year",   "format": "%Y-%Q" },
     { "name": "Half-Year",      "format": "%Y-%H" },
-    { "name": "Year",           "format": "%Y" }
+    { "name": "Year",           "format": "%Y" },
+    { "name": "Selected Period","format": "FULL" }
 ]
 '''
 
-anchor_modifiers = {
-        '%Y-%m-%d': "'START OF DAY'",
-        '%Y-%W': "'WEEKDAY 0', '-6 DAYS'",
-        '%Y-%m': "'START OF MONTH'",
-        '%Y-%Q': "'START OF MONTH'",
-        '%Y-%H': "'START OF MONTH'",
-        '%Y': "'START OF YEAR'",
-    }
 
+YMD = '%Y-%m-%d'
+YW = '%Y-%W'
+YM = '%Y-%m'
+YQ = '%Y-%Q'
+YH = '%Y-%H'
+Y = '%Y'
+SELECTED_PERIOD = 'FULL'
+
+anchor_modifiers = {
+    YMD: "'START OF DAY'",
+    YW: "'WEEKDAY 0', '-6 DAYS'",
+    YM: "'START OF MONTH'",
+    YQ: "'START OF MONTH'",
+    YH: "'START OF MONTH'",
+    Y: "'START OF YEAR'",
+}
+
+
+# yapf: disable
 def generate_group_by_period(format: str, field: str, modifier: str = '') -> str:
     if not modifier:
         modifier = anchor_modifiers.get(format, "'START OF DAY'")
     return {
-        '%Y-%W': f"STRFTIME('%Y-%m-%d', {field}, {modifier})",
-        '%Y-%m': f"STRFTIME('%Y-%m', {field}, {modifier})",
-        '%Y-%Q': f"(STRFTIME('%Y', {field}, {modifier}) || -((STRFTIME('%m', {field}, {modifier}) + 2) / 3))",
-        '%Y-%H': f"(STRFTIME('%Y', {field}, {modifier}) || -((STRFTIME('%m', {field}, {modifier}) + 7) / 7))",
-        '%Y': f"STRFTIME('%Y', {field}, {modifier})"
-    }.get(format, f"STRFTIME('%Y-%m-%d', {field}, {modifier})")
+        YW: f"STRFTIME('{YMD}', {field}, {modifier})",
+        YM: f"STRFTIME('{YM}', {field}, {modifier})",
+        YQ: f"(STRFTIME('{Y}', {field}, {modifier}) || -((STRFTIME('%m', {field}, {modifier}) + 2) / 3))",
+        YH: f"(STRFTIME('{Y}', {field}, {modifier}) || -((STRFTIME('%m', {field}, {modifier}) + 7) / 7))",
+        Y: f"STRFTIME('{Y}', {field}, {modifier})",
+        SELECTED_PERIOD : f"'{SELECTED_PERIOD}'",
+    }.get(format, f"STRFTIME('{YMD}', {field}, {modifier})")
+# yapf: enable
 
 
 async def generate_periods(
@@ -51,21 +65,24 @@ async def generate_periods(
     end: str,
     format: str,
 ) -> str:
-    def negative(modifier: str)->str:
+    if format == SELECTED_PERIOD:
+        return f'["{SELECTED_PERIOD}"]'
+
+    def negative(modifier: str) -> str:
         return "'-" + modifier[2:]
-        
+
     recursive_member_modifier = {
-        '%Y-%m-%d': "'+1 DAYS'",
-        '%Y-%W': "'+7 DAYS'",
-        '%Y-%m': "'+1 MONTHS'",
-        '%Y-%Q': "'+1 MONTHS'",
-        '%Y-%H': "'+1 MONTHS'",
-        '%Y': "'+1 YEAR'",
+        YMD: "'+1 DAYS'",
+        YW: "'+7 DAYS'",
+        YM: "'+1 MONTHS'",
+        YQ: "'+1 MONTHS'",
+        YH: "'+1 MONTHS'",
+        Y: "'+1 YEAR'",
     }[format]
 
     anchor_modifier = anchor_modifiers[format]
-    anchor_format = '%Y-%m-%d'
-    if format == '%Y-%W':
+    anchor_format = YMD
+    if format == YW:
         anchor_format = format
     start = to_quoted_string(start)
     end = to_quoted_string(end)
@@ -73,7 +90,7 @@ async def generate_periods(
     format_params = {
         **PeriodsMeta.get_attrs(),
         'anchor_expr': generate_group_by_period(anchor_format, start, anchor_modifier),
-        'anchor_expr_formatted':  generate_group_by_period(format, start, anchor_modifier), 
+        'anchor_expr_formatted':  generate_group_by_period(format, start, anchor_modifier),
         'recursive_expr': generate_group_by_period(anchor_format, PeriodsMeta.start, recursive_member_modifier),
         'recursive_expr_formatted': generate_group_by_period(format, PeriodsMeta.start, recursive_member_modifier),
         'recursion_cond_expr': f'{PeriodsMeta.start} < {generate_group_by_period(anchor_format, end, negative(recursive_member_modifier))}',
