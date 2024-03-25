@@ -15,7 +15,7 @@ def __ensure_metrics_usage(
     if __metrics_usage is None:
 
         def normilize(name: str) -> str:
-            return "".join(filter(str.isalnum, name))
+            return ''.join(filter(str.isalnum, name))
 
         def counter(metric: Metric) -> Counter:
             name = metric.get_display_name()
