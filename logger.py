@@ -1,6 +1,6 @@
-import os
+import toolbox.config as config
 
 
 def debug(msg: str, *args, **kwargs):
-    if int(os.environ.get('DEBUG', 0)):
+    if config.debug():
         print(msg)

@@ -1,6 +1,7 @@
 import os
 import aiohttp
 import sys
+import toolbox.config as config
 from cachetools import TTLCache
 from wrapt import decorator
 from typing import Protocol
@@ -36,7 +37,7 @@ def with_authorization(auth_check: Callable[[AuthResponse], bool]):
         args,
         kwargs: Mapping,
     ) -> Awaitable:
-        if not int(os.environ.get('AUTH_ENABLED', 1)):
+        if not config.auth_enabled():
             return await func(*args, **kwargs)
 
         access_token = kwargs.get('access_token', '')
@@ -57,7 +58,7 @@ def with_authorization(auth_check: Callable[[AuthResponse], bool]):
 
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                os.environ['AUTH_ENDPOINT'],
+                config.auth_endpoint(),
                 headers={'Authorization': access_token},
             ) as response:
                 __cache[access_token] = response

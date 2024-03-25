@@ -1,5 +1,5 @@
 import redis
-import os
+import toolbox.config as config
 from typing import Any, Optional
 from toolbox.cache.utils import get_key
 
@@ -12,8 +12,8 @@ class RedisCache:
     def _ensure_connection(self):
         if not hasattr(RedisCache, 'instance'):
             RedisCache.instance = redis.Redis(
-                host=os.environ['REDIS_SERVICE'],
-                port=os.environ['REDIS_PORT'],
+                host=config.redis_service(),
+                port=config.redis_port(),
                 password='',
                 decode_responses=True,
             )

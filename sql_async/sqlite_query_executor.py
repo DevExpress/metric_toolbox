@@ -1,6 +1,7 @@
 import os
 import asyncio
 import aiosqlite
+import toolbox.config as config
 from collections.abc import Mapping, Iterable, Coroutine
 from typing import Optional
 from wrapt import decorator
@@ -28,7 +29,7 @@ class DbConnectable:
 
     def get_connection_object(self) -> aiosqlite.Connection:
         return self.__conn or aiosqlite.connect(
-            database=os.environ['SQLITE_DATABASE']
+            database=config.sqlite_database()
         )
 
 
