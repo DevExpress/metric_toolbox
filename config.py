@@ -42,7 +42,7 @@ def redis_db() -> str:
 
 
 def production() -> int:
-    return int(os.environ['PRODUCTION'])
+    return int(os.environ.get('PRODUCTION', 0))
 
 
 def debug() -> int:
