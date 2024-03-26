@@ -1,4 +1,3 @@
-import os
 import aiohttp
 import sys
 import toolbox.config as config
@@ -21,7 +20,7 @@ class AuthResponse(Protocol):
         pass
 
 
-def with_authorization(auth_check: Callable[[AuthResponse], bool]):
+def with_authorization(auth_check: Callable[[AuthResponse], Awaitable]):
     """
     Accesses auth endpoint and invokes auth_check agains the response.
     Requires wrapped method to declare the access_token and response params.
@@ -35,7 +34,7 @@ def with_authorization(auth_check: Callable[[AuthResponse], bool]):
         func: Awaitable,
         instance,
         args,
-        kwargs: Mapping,
+        kwargs: dict,
     ) -> Awaitable:
         if not config.auth_enabled():
             return await func(*args, **kwargs)
@@ -46,7 +45,10 @@ def with_authorization(auth_check: Callable[[AuthResponse], bool]):
             return
 
         async def next(response: AuthResponse):
-            if auth_check(response):
+            auth_resp = await auth_check(response)
+            if auth_resp:
+                if isinstance(auth_resp, Mapping):
+                    kwargs.update(auth_resp)
                 return await func(*args, **kwargs)
             __forbid_access(kwargs)
 
