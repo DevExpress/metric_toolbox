@@ -9,10 +9,11 @@ import toolbox.config as config
 _engine: Engine = None
 if config.production():
 
-    url = f'''mssql+pyodbc://
-    {config.sql_user()}:{config.sql_password()}@
-    {config.sql_server()}/{config.sql_database()}
-    ?driver=ODBC Driver 18 for SQL Server&TrustServerCertificate=yes'''
+    url = (
+        'mssql+pyodbc://' + config.sql_user() + ':' + config.sql_password()
+        + '@' + config.sql_server() + '/' + config.sql_database()
+        + '?driver=ODBC Driver 18 for SQL Server&TrustServerCertificate=yes'
+    )
 
     _engine = create_engine(
         url=url,
