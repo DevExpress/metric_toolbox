@@ -1,12 +1,6 @@
 import os
-
-
-def get_env_val(env: str, converter=int, default=0):
-    return converter(os.environ.get(env, default))
-
-
-def set_env_val(env: str, converter=str, val=0):
-    os.environ[env] = converter(val)
+from collections.abc import Iterable
+from toolbox.utils.converters import JSON_to_object
 
 
 def sql_user() -> str:
@@ -55,3 +49,7 @@ def auth_enabled() -> int:
 
 def auth_endpoint() -> str:
     return os.environ['AUTH_ENDPOINT']
+
+
+def cors_origins() -> Iterable[str]:
+    return JSON_to_object.convert(os.environ['CORS_ORIGINS'])
