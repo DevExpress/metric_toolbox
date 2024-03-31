@@ -1,39 +1,33 @@
 import redis.asyncio as async_redis
 import toolbox.config as config
 from typing import Any, Optional
-from toolbox.cache.utils import get_key
+from toolbox.cache.utils import get_key as _get_key
 
 
-class RedisCache:
+__instance = async_redis.Redis(
+    host=config.redis_service(),
+    port=config.redis_port(),
+    password='',
+    decode_responses=True,
+    single_connection_client=True,
+)
 
-    def __init__(self, db_name: str = None) -> None:
-        self.db_name = db_name
 
-    async def _ensure_connection(self):
-        if not hasattr(RedisCache, 'instance'):
-            RedisCache.instance = await async_redis.Redis(
-                host=config.redis_service(),
-                port=config.redis_port(),
-                password='',
-                decode_responses=True,
-            )
+async def get(key: str) -> str:
+    return await __instance.get(key)
 
-    async def get(self, key: str) -> str:
-        await self._ensure_connection()
-        return await RedisCache.instance.get(key)
 
-    async def set(
-        self,
-        key: str,
-        value: Any,
-        ex: Optional[int],
-    ):
-        await self._ensure_connection()
-        await RedisCache.instance.set(
-            key,
-            value,
-            ex=ex,
-        )
+async def set(
+    key: str,
+    value: Any,
+    ex: Optional[int],
+):
+    await __instance.set(
+        key,
+        value,
+        ex=ex,
+    )
 
-    def get_key(self, *args) -> str:
-        return get_key(self.db_name, args)
+
+def get_key(*args) -> str:
+    return _get_key('', args)

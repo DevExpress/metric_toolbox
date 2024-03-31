@@ -1,7 +1,7 @@
 from typing import Iterable, Union, Any, Optional
 from pandas import DataFrame
 
-from toolbox.cache.redis_cache import RedisCache
+import toolbox.cache.redis_cache as _redis_cache
 from toolbox.utils.converters import (
     DF_to_JSON,
     JSON_to_DF,
@@ -11,20 +11,10 @@ from toolbox.utils.converters import (
 )
 
 
-_cache = None
-
-
-def _get_or_create_cache():
-    global _cache
-    if _cache is None:
-        _cache = RedisCache()
-    return _cache
-
-
 class CacheObject:
 
     def _get_cache(self):
-        return _get_or_create_cache()
+        return _redis_cache
 
     def __init__(
         self,
@@ -35,7 +25,7 @@ class CacheObject:
         self.expire = expire
 
     def get(self, *args) -> Optional[str]:
-        return self._get_cache().get(key=self.__get_key(*args))
+        return self._get_cache().get(key=self.__get_key(args))
 
     def get_df(self, *args, **kwargs) -> DataFrame:
         return JSON_to_DF.convert(json=self.get(*args), **kwargs)
@@ -43,12 +33,12 @@ class CacheObject:
     def get_object(self, *args, **kwargs) -> Any:
         return JSON_to_object.convert(json_obj=self.get(*args), **kwargs)
 
-    def __get_key(self, *args):
+    def __get_key(self, args: Iterable):
         return self._get_cache().get_key(self.__base_key, *args)
 
     def save(self, value: str, key: Iterable = ()) -> str:
         self._get_cache().set(
-            key=self.__get_key(*key),
+            key=self.__get_key(key),
             value=value,
             ex=self.expire,
         )
